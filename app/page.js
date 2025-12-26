@@ -112,20 +112,53 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Latest Articles */}
+      {/* Latest Articles Preview или CTA */}
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="mb-12 flex items-center justify-between">
             <h2 className="text-3xl font-bold text-purple-300">
               {t.latestArticles}
             </h2>
-            <Button variant="outline" asChild>
-              <Link href="/articles">
-                {t.viewAll}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
           </div>
+
+          {/* CTA для неавторизованных пользователей */}
+          <Card className="border-purple-900/50 bg-slate-900/50 backdrop-blur p-12 text-center">
+            <div className="mx-auto max-w-2xl space-y-6">
+              <div className="mx-auto w-16 h-16 rounded-full bg-purple-600/20 flex items-center justify-center">
+                <BookOpen className="h-8 w-8 text-purple-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-purple-300">
+                Получите доступ к эксклюзивным материалам
+              </h3>
+              <p className="text-slate-300 text-lg">
+                Зарегистрируйтесь, чтобы получить доступ к образовательным статьям, руководствам и аналитике по криптовалютам.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                <Button
+                  size="lg"
+                  asChild
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <Link href="/sign-up">
+                    Зарегистрироваться
+                  </Link>
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  asChild
+                  className="border-purple-600 text-purple-300"
+                >
+                  <Link href="/sign-in">
+                    Уже есть аккаунт
+                  </Link>
+                </Button>
+              </div>
+              <p className="text-sm text-slate-500">
+                ℹ️ После регистрации администратор одобрит ваш аккаунт в течение 24 часов
+              </p>
+            </div>
+          </Card>
 
           {loading ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
