@@ -25,9 +25,11 @@ export const AuthProvider = ({ children }) => {
     const checkSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
+        console.log('Session:', session?.user?.email)
         if (session?.user) {
           setUser(session.user)
           const { data: profileData } = await getUserProfile(session.user.id)
+          console.log('Profile data:', profileData)
           setProfile(profileData)
         }
       } catch (error) {
@@ -42,9 +44,11 @@ export const AuthProvider = ({ children }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth event:', event)
         if (session?.user) {
           setUser(session.user)
           const { data: profileData } = await getUserProfile(session.user.id)
+          console.log('Profile data on auth change:', profileData)
           setProfile(profileData)
         } else {
           setUser(null)
