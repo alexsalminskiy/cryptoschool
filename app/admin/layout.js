@@ -15,9 +15,12 @@ export default function AdminLayout({ children }) {
   const t = translations[language]
 
   useEffect(() => {
+    console.log('[AdminLayout] useEffect triggered', { isAdmin, loading, user: !!user, profile })
     if (!loading && !isAdmin) {
-      console.log('Admin check:', { isAdmin, loading })
+      console.log('[AdminLayout] Not admin, redirecting to home')
       router.push('/')
+    } else if (!loading && isAdmin) {
+      console.log('[AdminLayout] User is admin! ✅')
     }
   }, [isAdmin, loading, router])
 
