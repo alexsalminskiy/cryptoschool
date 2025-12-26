@@ -9,7 +9,7 @@ import { LayoutDashboard, FileText, Users, ArrowLeft } from 'lucide-react'
 import { translations } from '@/lib/i18n'
 
 export default function AdminLayout({ children }) {
-  const { isAdmin, loading } = useAuth()
+  const { isAdmin, loading, user, profile } = useAuth()
   const router = useRouter()
   const language = 'ru'
   const t = translations[language]
