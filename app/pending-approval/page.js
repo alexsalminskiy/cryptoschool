@@ -13,7 +13,7 @@ export default function PendingApprovalPage() {
   const router = useRouter()
   const { user, profile, signOut } = useAuth()
   const [checkingStatus, setCheckingStatus] = useState(false)
-  const [language] = useState('ru')
+  const language = 'ru'
   const t = translations[language]
 
   useEffect(() => {
