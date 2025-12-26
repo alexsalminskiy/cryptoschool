@@ -9,6 +9,29 @@ export async function middleware(req) {
     data: { session },
   } = await supabase.auth.getSession()
 
+  // Protect articles - require authentication and approval
+  if (req.nextUrl.pathname.startsWith('/articles')) {
+    if (!session) {
+      const signInUrl = new URL('/sign-in', req.url)
+      signInUrl.searchParams.set('redirect', req.nextUrl.pathname)
+      return NextResponse.redirect(signInUrl)
+    }
+
+    // Check if user is approved
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('approved, role')
+      .eq('id', session.user.id)
+      .single()
+
+    // Admins always have access
+    if (profile?.role !== 'admin') {
+      if (!profile?.approved) {
+        return NextResponse.redirect(new URL('/pending-approval', req.url))
+      }
+    }
+  }
+
   // Protect admin routes
   if (req.nextUrl.pathname.startsWith('/admin')) {
     if (!session) {
@@ -31,5 +54,5 @@ export async function middleware(req) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*']
+  matcher: ['/articles/:path*', '/admin/:path*']
 }
