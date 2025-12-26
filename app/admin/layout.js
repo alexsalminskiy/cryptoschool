@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
-import { LayoutDashboard, FileText, ArrowLeft } from 'lucide-react'
+import { LayoutDashboard, FileText, Users, ArrowLeft } from 'lucide-react'
 import { translations } from '@/lib/i18n'
 
 export default function AdminLayout({ children }) {
@@ -57,6 +57,16 @@ export default function AdminLayout({ children }) {
               <Link href="/admin/articles">
                 <FileText className="mr-2 h-4 w-4" />
                 {t.articlesManagement}
+              </Link>
+            </Button>
+            <Button
+              variant="ghost"
+              asChild
+              className="w-full justify-start text-slate-300 hover:text-purple-300 hover:bg-purple-900/20"
+            >
+              <Link href="/admin/users">
+                <Users className="mr-2 h-4 w-4" />
+                {t.usersManagement}
               </Link>
             </Button>
             <Button

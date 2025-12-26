@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, Eye, TrendingUp, Clock } from 'lucide-react'
+import { FileText, Eye, TrendingUp, Clock, Users } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { translations } from '@/lib/i18n'
 
@@ -11,7 +11,9 @@ export default function AdminDashboard() {
     totalArticles: 0,
     publishedArticles: 0,
     draftArticles: 0,
-    totalViews: 0
+    totalViews: 0,
+    totalUsers: 0,
+    pendingUsers: 0
   })
   const [loading, setLoading] = useState(true)
   const [language] = useState('ru')
@@ -23,22 +25,35 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const { data: articles, error } = await supabase
+      // Fetch articles stats
+      const { data: articles, error: articlesError } = await supabase
         .from('articles')
         .select('*')
 
-      if (error) throw error
+      if (articlesError) throw articlesError
 
       const totalArticles = articles.length
       const publishedArticles = articles.filter(a => a.status === 'published').length
       const draftArticles = articles.filter(a => a.status === 'draft').length
       const totalViews = articles.reduce((sum, a) => sum + (a.views || 0), 0)
 
+      // Fetch users stats
+      const { data: users, error: usersError } = await supabase
+        .from('profiles')
+        .select('*')
+
+      if (usersError) throw usersError
+
+      const totalUsers = users.length
+      const pendingUsers = users.filter(u => !u.approved && u.role !== 'admin').length
+
       setStats({
         totalArticles,
         publishedArticles,
         draftArticles,
-        totalViews
+        totalViews,
+        totalUsers,
+        pendingUsers
       })
     } catch (error) {
       console.error('Error fetching stats:', error)
@@ -61,16 +76,23 @@ export default function AdminDashboard() {
       color: 'text-green-400'
     },
     {
-      title: t.draft,
-      value: stats.draftArticles,
-      icon: Clock,
-      color: 'text-yellow-400'
-    },
-    {
       title: t.totalViews,
       value: stats.totalViews,
       icon: Eye,
       color: 'text-purple-400'
+    },
+    {
+      title: t.totalUsers,
+      value: stats.totalUsers,
+      icon: Users,
+      color: 'text-cyan-400'
+    },
+    {
+      title: t.pendingUsers,
+      value: stats.pendingUsers,
+      icon: Clock,
+      color: 'text-yellow-400',
+      highlight: stats.pendingUsers > 0
     }
   ]
 
@@ -78,12 +100,12 @@ export default function AdminDashboard() {
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-purple-300 mb-2">{t.dashboard}</h1>
-        <p className="text-slate-400">Статистика платформы</p>
+        <p className="text-slate-400">Статистика платформы Crypto Academy</p>
       </div>
 
       {loading ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {[...Array(4)].map((_, i) => (
+          {[...Array(5)].map((_, i) => (
             <Card key={i} className="border-purple-900/50 bg-slate-900/50 animate-pulse">
               <CardHeader>
                 <div className="h-4 bg-slate-800 rounded w-2/3" />
@@ -95,9 +117,14 @@ export default function AdminDashboard() {
           ))}
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {statCards.map((stat, index) => (
-            <Card key={index} className="border-purple-900/50 bg-slate-900/50 backdrop-blur">
+            <Card 
+              key={index} 
+              className={`border-purple-900/50 bg-slate-900/50 backdrop-blur ${
+                stat.highlight ? 'ring-2 ring-yellow-500/50' : ''
+              }`}
+            >
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-slate-400">
                   {stat.title}
@@ -108,6 +135,11 @@ export default function AdminDashboard() {
                 <div className={`text-3xl font-bold ${stat.color}`}>
                   {stat.value}
                 </div>
+                {stat.highlight && (
+                  <p className="text-xs text-yellow-400 mt-2">
+                    Требуется внимание!
+                  </p>
+                )}
               </CardContent>
             </Card>
           ))}
