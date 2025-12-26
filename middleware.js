@@ -1,69 +1,20 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 
 export async function middleware(req) {
-  let res = NextResponse.next()
+  const res = NextResponse.next()
+  
+  // Get session from cookies
+  const authToken = req.cookies.get('supabase.auth.token')
+  
+  console.log('[Middleware] Path:', req.nextUrl.pathname)
+  console.log('[Middleware] Auth token exists:', !!authToken)
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        get(name) {
-          return req.cookies.get(name)?.value
-        },
-        set(name, value, options) {
-          res.cookies.set(name, value, options)
-        },
-        remove(name, options) {
-          res.cookies.set(name, '', options)
-        },
-      },
-    }
-  )
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  // Protect articles - require authentication and approval
-  if (req.nextUrl.pathname.startsWith('/articles')) {
-    if (!session) {
-      const signInUrl = new URL('/sign-in', req.url)
-      signInUrl.searchParams.set('redirect', req.nextUrl.pathname)
-      return NextResponse.redirect(signInUrl)
-    }
-
-    // Check if user is approved
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('approved, role')
-      .eq('id', session.user.id)
-      .single()
-
-    // Admins always have access
-    if (profile?.role !== 'admin') {
-      if (!profile?.approved) {
-        return NextResponse.redirect(new URL('/pending-approval', req.url))
-      }
-    }
-  }
-
-  // Protect admin routes
+  // Protect admin routes - just check if logged in
+  // Real role check happens in the layout component
   if (req.nextUrl.pathname.startsWith('/admin')) {
-    if (!session) {
+    if (!authToken) {
+      console.log('[Middleware] No auth token, redirecting to sign-in')
       return NextResponse.redirect(new URL('/sign-in', req.url))
-    }
-
-    // Check if user is admin
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', session.user.id)
-      .single()
-
-    if (profile?.role !== 'admin') {
-      return NextResponse.redirect(new URL('/', req.url))
     }
   }
 
@@ -71,5 +22,5 @@ export async function middleware(req) {
 }
 
 export const config = {
-  matcher: ['/articles/:path*', '/admin/:path*']
+  matcher: ['/admin/:path*']
 }
