@@ -57,13 +57,13 @@ export default function NewArticle() {
     setSlug(generatedSlug)
   }, [])
 
-  // Handle image upload
-  const handleImageUpload = async (e) => {
+  // Оптимизированная загрузка изображения
+  const handleImageUpload = useCallback(async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
 
+    setUploading(true)
     try {
-      setUploading(true)
       const formData = new FormData()
       formData.append('file', file)
 
@@ -86,18 +86,17 @@ export default function NewArticle() {
     } finally {
       setUploading(false)
     }
-  }
+  }, [])
 
-  // Save article
-  const handleSave = async (publishNow = false) => {
+  // Оптимизированное сохранение
+  const handleSave = useCallback(async (publishNow = false) => {
     if (!title || !slug || !category || !content) {
       toast.error('Заполните все обязательные поля')
       return
     }
 
+    setSaving(true)
     try {
-      setSaving(true)
-      
       const { data, error } = await supabase
         .from('articles')
         .insert([{
@@ -126,7 +125,7 @@ export default function NewArticle() {
     } finally {
       setSaving(false)
     }
-  }
+  }, [title, slug, category, coverImage, content, status, t, router])
 
   return (
     <div>
