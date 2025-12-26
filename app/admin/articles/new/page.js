@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
-import { ArrowLeft, Save, Upload, Eye } from 'lucide-react'
+import { ArrowLeft, Save, Upload } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { translations, categories } from '@/lib/i18n'
 import { toast } from 'sonner'
@@ -21,9 +21,17 @@ import dynamic from 'next/dynamic'
 import '@uiw/react-md-editor/markdown-editor.css'
 import '@uiw/react-markdown-preview/markdown.css'
 
+// Ленивая загрузка редактора для ускорения
 const MDEditor = dynamic(
   () => import('@uiw/react-md-editor').then((mod) => mod.default),
-  { ssr: false }
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-[500px] bg-slate-800 rounded-lg">
+        <div className="text-purple-400">Загрузка редактора...</div>
+      </div>
+    )
+  }
 )
 
 export default function NewArticle() {
@@ -36,18 +44,18 @@ export default function NewArticle() {
   const [status, setStatus] = useState('draft')
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [language] = useState('ru')
+  const language = 'ru'
   const t = translations[language]
 
-  // Auto-generate slug from title
-  const handleTitleChange = (value) => {
+  // Мемоизированная функция генерации slug
+  const handleTitleChange = useCallback((value) => {
     setTitle(value)
     const generatedSlug = value
       .toLowerCase()
       .replace(/[^a-z0-9а-я]+/g, '-')
       .replace(/^-|-$/g, '')
     setSlug(generatedSlug)
-  }
+  }, [])
 
   // Handle image upload
   const handleImageUpload = async (e) => {
