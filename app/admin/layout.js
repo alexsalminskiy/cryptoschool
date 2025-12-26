@@ -11,11 +11,12 @@ import { translations } from '@/lib/i18n'
 export default function AdminLayout({ children }) {
   const { isAdmin, loading } = useAuth()
   const router = useRouter()
-  const [language] = useState('ru')
+  const language = 'ru'
   const t = translations[language]
 
   useEffect(() => {
     if (!loading && !isAdmin) {
+      console.log('Admin check:', { isAdmin, loading })
       router.push('/')
     }
   }, [isAdmin, loading, router])
