@@ -43,13 +43,15 @@ export default function ArticlesManagement() {
 
   const fetchArticles = async () => {
     try {
-      const { data, error } = await supabase
-        .from('articles')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      setArticles(data || [])
+      // Используем API вместо прямого вызова Supabase
+      const response = await fetch('/api/articles/all')
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Ошибка загрузки')
+      }
+      
+      setArticles(result || [])
     } catch (error) {
       console.error('Error fetching articles:', error)
       toast.error(t.error)
