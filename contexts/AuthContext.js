@@ -29,9 +29,15 @@ export const AuthProvider = ({ children }) => {
         console.log('Session:', session?.user?.email)
         if (session?.user) {
           setUser(session.user)
-          const { data: profileData } = await getUserProfile(session.user.id)
-          console.log('Profile data:', profileData)
-          setProfile(profileData)
+          try {
+            const { data: profileData, error } = await getUserProfile(session.user.id)
+            console.log('Profile data:', profileData, 'Error:', error)
+            if (profileData) {
+              setProfile(profileData)
+            }
+          } catch (profileError) {
+            console.error('Error fetching profile:', profileError)
+          }
         }
       } catch (error) {
         console.error('Error checking session:', error)
@@ -56,9 +62,15 @@ export const AuthProvider = ({ children }) => {
         
         if (session?.user) {
           setUser(session.user)
-          const { data: profileData } = await getUserProfile(session.user.id)
-          console.log('Profile data on auth change:', profileData)
-          setProfile(profileData)
+          try {
+            const { data: profileData, error } = await getUserProfile(session.user.id)
+            console.log('Profile data on auth change:', profileData, 'Error:', error)
+            if (profileData) {
+              setProfile(profileData)
+            }
+          } catch (profileError) {
+            console.error('Error fetching profile on auth change:', profileError)
+          }
         } else {
           setUser(null)
           setProfile(null)
