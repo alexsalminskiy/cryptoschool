@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
 import { ArrowLeft, Save, Upload, Trash2, Loader2 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
 import { translations, categories } from '@/lib/i18n'
 import { toast } from 'sonner'
 import ArticleEditor from '@/components/ArticleEditor'
