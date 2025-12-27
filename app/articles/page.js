@@ -97,7 +97,7 @@ export default function ArticlesPage() {
             className="pl-10 bg-slate-800 border-slate-700"
           />
         </div>
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+        <Select value={selectedCategory} onValueChange={handleCategoryChange}>
           <SelectTrigger className="w-full md:w-[200px] bg-slate-800 border-slate-700">
             <SelectValue />
           </SelectTrigger>
