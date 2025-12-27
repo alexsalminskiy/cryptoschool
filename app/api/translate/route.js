@@ -1,10 +1,4 @@
 import { NextResponse } from 'next/server'
-import OpenAI from 'openai'
-
-const openai = new OpenAI({
-  apiKey: process.env.EMERGENT_LLM_KEY,
-  baseURL: 'https://api.emergentagi.com/v1'
-})
 
 // Языковые коды и названия
 const LANGUAGES = {
@@ -29,25 +23,39 @@ export async function POST(request) {
     const targetLangName = LANGUAGES[targetLang] || targetLang
     const sourceLangName = LANGUAGES[sourceLang] || sourceLang
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: `Ты профессиональный переводчик. Переводи текст с ${sourceLangName} на ${targetLangName}. 
+    const response = await fetch('https://api.emergentagi.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.EMERGENT_LLM_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `Ты профессиональный переводчик. Переводи текст с ${sourceLangName} на ${targetLangName}. 
 Сохраняй форматирование markdown (заголовки #, ##, ###, жирный текст **, курсив *, списки -, ссылки [], изображения ![]). 
 Не добавляй никаких комментариев, только перевод.`
-        },
-        {
-          role: 'user',
-          content: text
-        }
-      ],
-      temperature: 0.3,
-      max_tokens: 4000
+          },
+          {
+            role: 'user',
+            content: text
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 4000
+      })
     })
 
-    const translatedText = completion.choices[0]?.message?.content || text
+    if (!response.ok) {
+      const errorData = await response.text()
+      console.error('API Error:', errorData)
+      return NextResponse.json({ error: 'Translation API error' }, { status: 500 })
+    }
+
+    const data = await response.json()
+    const translatedText = data.choices?.[0]?.message?.content || text
 
     return NextResponse.json({ translatedText })
   } catch (error) {
