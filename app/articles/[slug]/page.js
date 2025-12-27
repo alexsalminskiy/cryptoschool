@@ -78,22 +78,108 @@ export default function ArticlePage() {
   const params = useParams()
   const router = useRouter()
   const [article, setArticle] = useState(null)
+  const [translatedContent, setTranslatedContent] = useState(null)
+  const [translatedTitle, setTranslatedTitle] = useState(null)
   const [loading, setLoading] = useState(true)
-  const language = 'ru'
-  const t = translations[language]
+  const [translating, setTranslating] = useState(false)
+  const [currentLang, setCurrentLang] = useState('ru')
+  
+  // Получаем язык из localStorage
+  useEffect(() => {
+    const savedLang = localStorage.getItem('language') || 'ru'
+    setCurrentLang(savedLang)
+  }, [])
+  
+  // Слушаем изменения языка
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const newLang = localStorage.getItem('language') || 'ru'
+      if (newLang !== currentLang) {
+        setCurrentLang(newLang)
+      }
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    // Проверяем каждую секунду для обнаружения изменений в той же вкладке
+    const interval = setInterval(() => {
+      const newLang = localStorage.getItem('language') || 'ru'
+      if (newLang !== currentLang) {
+        setCurrentLang(newLang)
+      }
+    }, 500)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      clearInterval(interval)
+    }
+  }, [currentLang])
+  
+  const t = translations[currentLang] || translations['ru']
 
   // Расчёт времени чтения
   const readingTime = useMemo(() => {
-    if (!article?.content_md) return 0
-    const words = article.content_md.split(/\s+/).length
+    const content = translatedContent || article?.content_md
+    if (!content) return 0
+    const words = content.split(/\s+/).length
     return Math.ceil(words / 200)
-  }, [article?.content_md])
+  }, [article?.content_md, translatedContent])
 
   useEffect(() => {
     if (params.slug) {
       fetchArticle()
     }
   }, [params.slug])
+  
+  // Перевод при смене языка
+  useEffect(() => {
+    if (article && currentLang !== 'ru') {
+      translateArticle()
+    } else if (currentLang === 'ru') {
+      setTranslatedContent(null)
+      setTranslatedTitle(null)
+    }
+  }, [currentLang, article])
+  
+  const translateArticle = async () => {
+    if (!article) return
+    
+    setTranslating(true)
+    try {
+      // Переводим заголовок
+      const titleResponse = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          text: article.title, 
+          targetLang: currentLang, 
+          sourceLang: 'ru' 
+        })
+      })
+      const titleData = await titleResponse.json()
+      if (titleData.translatedText) {
+        setTranslatedTitle(titleData.translatedText)
+      }
+      
+      // Переводим контент
+      const contentResponse = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          text: article.content_md, 
+          targetLang: currentLang, 
+          sourceLang: 'ru' 
+        })
+      })
+      const contentData = await contentResponse.json()
+      if (contentData.translatedText) {
+        setTranslatedContent(contentData.translatedText)
+      }
+    } catch (error) {
+      console.error('Translation error:', error)
+    } finally {
+      setTranslating(false)
+    }
+  }
 
   const fetchArticle = async () => {
     try {
