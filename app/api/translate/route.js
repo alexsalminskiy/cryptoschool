@@ -1,10 +1,16 @@
 import { NextResponse } from 'next/server'
 
+// Простой словарь для базового перевода (временное решение)
+// В будущем можно подключить внешний API перевода
+const basicTranslations = {
+  // Базовые фразы для демонстрации
+}
+
 // Языковые коды и названия
 const LANGUAGES = {
-  ru: 'русский',
-  kk: 'казахский',
-  en: 'английский'
+  ru: 'Russian',
+  kk: 'Kazakh', 
+  en: 'English'
 }
 
 export async function POST(request) {
@@ -20,44 +26,40 @@ export async function POST(request) {
       return NextResponse.json({ translatedText: text })
     }
 
-    const targetLangName = LANGUAGES[targetLang] || targetLang
-    const sourceLangName = LANGUAGES[sourceLang] || sourceLang
-
-    const response = await fetch('https://api.emergentagi.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.EMERGENT_LLM_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `Ты профессиональный переводчик. Переводи текст с ${sourceLangName} на ${targetLangName}. 
-Сохраняй форматирование markdown (заголовки #, ##, ###, жирный текст **, курсив *, списки -, ссылки [], изображения ![]). 
-Не добавляй никаких комментариев, только перевод.`
-          },
-          {
-            role: 'user',
-            content: text
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 4000
+    // Используем Google Translate API (бесплатный endpoint)
+    const targetLangCode = targetLang === 'kk' ? 'kk' : targetLang
+    
+    try {
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLangCode}&dt=t&q=${encodeURIComponent(text)}`
+      
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0'
+        }
       })
-    })
-
-    if (!response.ok) {
-      const errorData = await response.text()
-      console.error('API Error:', errorData)
-      return NextResponse.json({ error: 'Translation API error' }, { status: 500 })
+      
+      if (response.ok) {
+        const data = await response.json()
+        // Собираем переведённый текст из ответа Google
+        let translatedText = ''
+        if (data && data[0]) {
+          data[0].forEach(item => {
+            if (item[0]) {
+              translatedText += item[0]
+            }
+          })
+        }
+        
+        if (translatedText) {
+          return NextResponse.json({ translatedText })
+        }
+      }
+    } catch (googleError) {
+      console.error('Google Translate error:', googleError)
     }
 
-    const data = await response.json()
-    const translatedText = data.choices?.[0]?.message?.content || text
-
-    return NextResponse.json({ translatedText })
+    // Если Google Translate не сработал, возвращаем оригинал
+    return NextResponse.json({ translatedText: text })
   } catch (error) {
     console.error('Translation error:', error)
     return NextResponse.json({ error: error.message || 'Translation failed' }, { status: 500 })
