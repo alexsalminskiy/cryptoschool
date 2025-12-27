@@ -64,12 +64,15 @@ export default function ArticlesManagement() {
     if (!deleteId) return
 
     try {
-      const { error } = await supabase
-        .from('articles')
-        .delete()
-        .eq('id', deleteId)
-
-      if (error) throw error
+      const response = await fetch(`/api/articles?id=${deleteId}`, {
+        method: 'DELETE',
+      })
+      
+      const result = await response.json()
+      
+      if (!response.ok || result.error) {
+        throw new Error(result.error || 'Ошибка удаления')
+      }
 
       toast.success(t.articleDeleted)
       setArticles(articles.filter(a => a.id !== deleteId))
