@@ -21,7 +21,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Check, X, Search, Plus, Trash2, Loader2, Edit, Shield } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
 
