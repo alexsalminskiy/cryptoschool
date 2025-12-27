@@ -15,6 +15,37 @@ import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
 import { toast } from 'sonner'
 
+// Размеры текста
+const TEXT_SIZES = [
+  { name: 'Очень большой', size: '2em', label: 'XXL' },
+  { name: 'Большой', size: '1.5em', label: 'XL' },
+  { name: 'Средний', size: '1.25em', label: 'L' },
+  { name: 'Обычный', size: '1em', label: 'M' },
+  { name: 'Маленький', size: '0.875em', label: 'S' },
+]
+
+// Модальное окно для размера текста
+function SizeModal({ isOpen, onClose, onSelect }) {
+  if (!isOpen) return null
+
+  return (
+    <div className="absolute top-full left-0 mt-1 z-50 p-2 bg-card border border-border rounded-lg shadow-xl min-w-[140px]">
+      <p className="text-xs text-muted-foreground mb-2 px-2">Размер текста:</p>
+      {TEXT_SIZES.map((s) => (
+        <button
+          key={s.size}
+          onClick={() => { onSelect(s.size); onClose(); }}
+          className="w-full text-left px-3 py-1.5 hover:bg-muted rounded flex items-center justify-between"
+          style={{ fontSize: s.size }}
+        >
+          <span>{s.name}</span>
+          <span className="text-xs text-muted-foreground ml-2">{s.label}</span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
 // Цвета для текста
 const TEXT_COLORS = [
   { name: 'Красный', color: '#ef4444', class: 'bg-red-500' },
