@@ -187,19 +187,18 @@ export default function Header() {
               </div>
             ) : (
               <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  onClick={() => router.push('/sign-in')}
-                  className="h-10 px-4 rounded-full hover:bg-purple-500/20"
+                <Link
+                  href="/sign-in"
+                  className="h-10 px-4 rounded-full hover:bg-purple-500/20 inline-flex items-center justify-center text-sm font-medium transition-colors"
                 >
                   {t.signIn}
-                </Button>
-                <Button
-                  onClick={() => router.push('/sign-up')}
-                  className="h-10 px-6 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-medium shadow-lg"
+                </Link>
+                <Link
+                  href="/sign-up"
+                  className="h-10 px-6 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-medium shadow-lg inline-flex items-center justify-center text-sm transition-colors"
                 >
                   {t.signUp}
-                </Button>
+                </Link>
               </div>
             )}
 
