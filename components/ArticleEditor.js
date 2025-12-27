@@ -479,6 +479,25 @@ export default function ArticleEditor({ value, onChange }) {
         <ToolbarButton onClick={handleBold} icon={Bold} title="Жирный" />
         <ToolbarButton onClick={handleItalic} icon={Italic} title="Курсив" />
         
+        {/* Размер текста */}
+        <div className="relative">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowSizeMenu(!showSizeMenu)}
+            className="h-9 w-9 p-0 text-muted-foreground hover:text-foreground hover:bg-muted"
+            title="Размер текста"
+          >
+            <Type className="h-4 w-4" />
+          </Button>
+          <SizeModal 
+            isOpen={showSizeMenu} 
+            onClose={() => setShowSizeMenu(false)}
+            onSelect={handleSizeSelect}
+          />
+        </div>
+        
         {/* Цвет текста */}
         <div className="relative">
           <Button
