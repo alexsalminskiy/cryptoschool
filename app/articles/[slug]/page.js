@@ -46,36 +46,36 @@ function parseMarkdown(md) {
   })
   
   let html = processedMd
-    // Заголовки - чистый sans-serif стиль как на примере
-    .replace(/^#### (.+)$/gm, '<h4 class="text-lg font-semibold mt-8 mb-4 text-slate-800 dark:text-slate-200">$1</h4>')
-    .replace(/^### (.+)$/gm, '<h3 class="text-xl font-semibold mt-10 mb-5 text-slate-800 dark:text-slate-200">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold mt-10 mb-5 text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-700 pb-3">$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold mt-10 mb-6 text-slate-900 dark:text-slate-100">$1</h1>')
+    // Заголовки - чистый стиль как на cryptology.school
+    .replace(/^#### (.+)$/gm, '<h4 class="text-lg font-semibold mt-6 mb-3 text-slate-900 dark:text-slate-100">$1</h4>')
+    .replace(/^### (.+)$/gm, '<h3 class="text-xl font-semibold mt-8 mb-4 text-slate-900 dark:text-slate-100">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold mt-8 mb-4 text-slate-900 dark:text-slate-100 pb-2 border-b border-slate-200 dark:border-slate-700">$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold mt-8 mb-5 text-slate-900 dark:text-slate-100">$1</h1>')
     // Жирный и курсив
-    .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-slate-900 dark:text-slate-100">$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em class="italic text-slate-600 dark:text-slate-400">$1</em>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em class="italic">$1</em>')
     // Изображения
-    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<figure class="my-8"><img src="$2" alt="$1" class="rounded-xl w-full shadow-lg" loading="lazy" /><figcaption class="text-center text-sm text-slate-500 dark:text-slate-400 mt-3 italic">$1</figcaption></figure>')
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<figure class="my-6"><img src="$2" alt="$1" class="rounded-lg w-full" loading="lazy" /><figcaption class="text-center text-sm text-slate-500 dark:text-slate-400 mt-2">$1</figcaption></figure>')
     // Ссылки
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-purple-600 dark:text-purple-400 hover:text-purple-500 underline underline-offset-4 decoration-purple-400/50 hover:decoration-purple-500 transition-colors" target="_blank" rel="noopener">$1</a>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-purple-600 dark:text-purple-400 hover:underline" target="_blank" rel="noopener">$1</a>')
     // Списки
-    .replace(/^\- (.+)$/gm, '<li class="flex items-start gap-3 mb-3 ml-2"><span class="text-purple-500 mt-2 text-xs flex-shrink-0">●</span><span class="flex-1">$1</span></li>')
+    .replace(/^\- (.+)$/gm, '<li class="flex items-start gap-2 mb-2"><span class="text-purple-500 mt-1.5 text-xs">●</span><span>$1</span></li>')
     // Цитаты
-    .replace(/^> (.+)$/gm, '<blockquote class="border-l-4 border-purple-400 bg-purple-50/80 dark:bg-purple-900/30 pl-6 py-4 my-8 italic text-slate-600 dark:text-slate-400 rounded-r-lg shadow-sm">$1</blockquote>')
+    .replace(/^> (.+)$/gm, '<blockquote class="border-l-4 border-purple-500 bg-slate-50 dark:bg-slate-800/50 pl-4 py-3 my-6 text-slate-600 dark:text-slate-400">$1</blockquote>')
     // Горизонтальная линия
-    .replace(/^---$/gm, '<hr class="my-10 border-slate-200 dark:border-slate-700" />')
+    .replace(/^---$/gm, '<hr class="my-8 border-slate-200 dark:border-slate-700" />')
     // Переносы строк в параграфы
-    .replace(/\n\n/g, '</p><p class="mb-5">')
+    .replace(/\n\n/g, '</p><p class="mb-4">')
 
   // Оборачиваем списки
-  html = html.replace(/(<li[^>]*>.*?<\/li>\s*)+/g, '<ul class="mb-6 list-none space-y-1">$&</ul>')
+  html = html.replace(/(<li[^>]*>.*?<\/li>\s*)+/g, '<ul class="mb-4 list-none">$&</ul>')
   
   // Восстанавливаем HTML теги
   htmlTags.forEach((tag, index) => {
     html = html.replace(`__HTML_TAG_${index}__`, tag)
   })
   
-  return `<div class="article-text"><p class="mb-5">${html}</p></div>`
+  return `<div class="article-text"><p class="mb-4">${html}</p></div>`
 }
 
 // Форматирование даты
