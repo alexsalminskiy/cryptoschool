@@ -44,13 +44,13 @@ export default function EditArticle() {
 
   const fetchArticle = async () => {
     try {
-      const { data, error } = await supabase
-        .from('articles')
-        .select('*')
-        .eq('id', params.id)
-        .single()
+      // Используем API для получения статьи по ID
+      const response = await fetch(`/api/articles/by-id/${params.id}`)
+      const data = await response.json()
 
-      if (error) throw error
+      if (!response.ok || data.error) {
+        throw new Error(data.error || 'Статья не найдена')
+      }
 
       setTitle(data.title)
       setSlug(data.slug)
