@@ -215,12 +215,11 @@ export default function UsersManagement() {
     
     setDeleting(true)
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userToDelete.id)
-
-      if (error) throw error
+      const response = await fetch(`/api/users?id=${userToDelete.id}`, {
+        method: 'DELETE'
+      })
+      
+      if (!response.ok) throw new Error('Ошибка удаления')
 
       toast.success('Удалён')
       setUsers(users.filter(u => u.id !== userToDelete.id))
@@ -237,18 +236,20 @@ export default function UsersManagement() {
   const handleToggleAdmin = async (userId, currentRole) => {
     const newRole = currentRole === 'admin' ? 'user' : 'admin'
     
-    const { error } = await supabase
-      .from('profiles')
-      .update({ role: newRole })
-      .eq('id', userId)
-
-    if (error) {
+    try {
+      const response = await fetch('/api/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: userId, role: newRole })
+      })
+      
+      if (!response.ok) throw new Error('Ошибка')
+      
+      toast.success(newRole === 'admin' ? 'Назначен админом!' : 'Права админа сняты')
+      setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u))
+    } catch (error) {
       toast.error('Ошибка')
-      return
     }
-    
-    toast.success(newRole === 'admin' ? 'Назначен админом!' : 'Права админа сняты')
-    setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u))
   }
 
   // Фильтрация
