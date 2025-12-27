@@ -3,14 +3,13 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { Moon, Sun, Menu, X, LogOut, Settings, Loader2 } from 'lucide-react'
+import { Moon, Sun, Menu, X, LogOut, Settings, Loader2, Globe } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/contexts/AuthContext'
@@ -26,9 +25,9 @@ const languages = [
 export default function Header() {
   const pathname = usePathname()
   const router = useRouter()
-  const { theme, setTheme, resolvedTheme } = useTheme()
+  const { resolvedTheme, setTheme } = useTheme()
   const { user, profile, isAdmin, signOut, signingOut } = useAuth()
-  const { language, setLanguage, mounted: langMounted } = useLanguage()
+  const { language, setLanguage } = useLanguage()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -46,10 +45,6 @@ export default function Header() {
     await signOut()
   }
 
-  const toggleTheme = () => {
-    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
-  }
-
   const navLinks = []
   if (user && profile?.approved) {
     navLinks.push({ href: '/articles', label: t.articles })
@@ -60,12 +55,10 @@ export default function Header() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="text-2xl font-bold">
-              <span className="bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
-                Crypto Academy
-              </span>
-            </div>
+          <Link href="/" className="flex items-center">
+            <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+              Crypto Academy
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -86,16 +79,16 @@ export default function Header() {
           )}
 
           {/* Right side */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2">
             {/* Language Switcher */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button 
                   variant="ghost" 
-                  className="h-10 px-3 rounded-full hover:bg-purple-500/20 transition-colors"
+                  size="icon"
+                  className="h-10 w-10 rounded-full hover:bg-purple-500/20"
                 >
-                  <span className="text-xl mr-1">{currentLang.flag}</span>
-                  <span className="text-sm hidden sm:inline">{currentLang.code.toUpperCase()}</span>
+                  <span className="text-xl">{currentLang.flag}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44">
@@ -117,15 +110,13 @@ export default function Header() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={toggleTheme}
-              className="h-10 w-10 rounded-full hover:bg-purple-500/20 transition-colors"
+              onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+              className="h-10 w-10 rounded-full hover:bg-purple-500/20"
             >
               {mounted && (
-                resolvedTheme === 'dark' ? (
-                  <Sun className="h-5 w-5 text-yellow-400" />
-                ) : (
-                  <Moon className="h-5 w-5 text-purple-500" />
-                )
+                resolvedTheme === 'dark' 
+                  ? <Sun className="h-5 w-5 text-yellow-400" /> 
+                  : <Moon className="h-5 w-5 text-purple-500" />
               )}
             </Button>
 
@@ -160,7 +151,7 @@ export default function Header() {
                       className="cursor-pointer text-red-400 focus:text-red-400"
                     >
                       {signingOut ? (
-                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t.loading}</>
+                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Выход...</>
                       ) : (
                         <><LogOut className="mr-2 h-4 w-4" /> {t.signOut}</>
                       )}
