@@ -49,16 +49,17 @@ export default function SignInPage() {
 
       toast.success('Вход выполнен!')
 
+      // Небольшая задержка для обновления состояния Auth
+      await new Promise(resolve => setTimeout(resolve, 500))
+
       // Перенаправление в зависимости от статуса
       if (profile?.role === 'admin') {
-        router.push('/admin')
+        window.location.href = '/admin'
       } else if (profile?.approved) {
-        router.push('/articles')
+        window.location.href = '/articles'
       } else {
-        router.push('/pending-approval')
+        window.location.href = '/pending-approval'
       }
-      
-      router.refresh()
 
     } catch (error) {
       toast.error('Ошибка входа')
