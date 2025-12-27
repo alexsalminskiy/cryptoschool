@@ -1,16 +1,16 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
-import { LayoutDashboard, FileText, Users, ArrowLeft, LogOut } from 'lucide-react'
+import { LayoutDashboard, FileText, Users, ArrowLeft, LogOut, Loader2 } from 'lucide-react'
 import { translations } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 export default function AdminLayout({ children }) {
-  const { isAdmin, loading, user, profile, signOut } = useAuth()
+  const { isAdmin, loading, user, profile, signOut, signingOut } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
   const language = 'ru'
@@ -24,7 +24,18 @@ export default function AdminLayout({ children }) {
     } else if (!loading && isAdmin) {
       console.log('[AdminLayout] User is admin! ✅')
     }
-  }, [isAdmin, loading, router])
+  }, [isAdmin, loading, router, user, profile])
+
+  // Обработчик выхода
+  const handleSignOut = async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (signingOut) return
+    
+    console.log('[AdminLayout] Signing out...')
+    await signOut()
+  }
 
   if (loading) {
     return (
@@ -129,14 +140,21 @@ export default function AdminLayout({ children }) {
             </Button>
             <Button
               variant="ghost"
-              onClick={(e) => {
-                e.preventDefault()
-                signOut()
-              }}
-              className="w-full justify-start text-red-300 hover:text-red-200 hover:bg-red-900/20"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="w-full justify-start text-red-300 hover:text-red-200 hover:bg-red-900/20 disabled:opacity-50"
             >
-              <LogOut className="mr-2 h-4 w-4" />
-              {t.signOut}
+              {signingOut ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Выход...
+                </>
+              ) : (
+                <>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  {t.signOut}
+                </>
+              )}
             </Button>
           </div>
         </div>
@@ -150,8 +168,4 @@ export default function AdminLayout({ children }) {
       </main>
     </div>
   )
-}
-
-function useState(initialValue) {
-  return [initialValue]
 }
