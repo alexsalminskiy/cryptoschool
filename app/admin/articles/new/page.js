@@ -87,7 +87,7 @@ export default function NewArticle() {
     }
   }
 
-  // Сохранение статьи
+  // Сохранение статьи через API
   const handleSave = async (publishNow = false) => {
     // Валидация
     if (!title.trim()) {
@@ -117,33 +117,36 @@ export default function NewArticle() {
         category,
         cover_image_url: coverImage || null,
         content_md: content,
-        status: publishNow ? 'published' : status,
-        views: 0
+        status: publishNow ? 'published' : status
       }
 
-      console.log('Saving article:', articleData)
+      console.log('Saving article via API:', articleData)
 
-      // Простой запрос без Promise.race
-      const response = await supabase
-        .from('articles')
-        .insert([articleData])
-        .select()
-        .single()
+      // Используем API endpoint вместо прямого вызова Supabase
+      const response = await fetch('/api/articles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(articleData),
+      })
 
-      console.log('Supabase response:', response)
+      const result = await response.json()
+      console.log('API response:', result)
 
-      if (response.error) {
-        console.error('Supabase error:', response.error)
-        if (response.error.code === '23505' || response.error.message?.includes('duplicate')) {
+      if (!response.ok || result.error) {
+        const errorMsg = result.error || 'Неизвестная ошибка'
+        console.error('API error:', errorMsg)
+        if (errorMsg.includes('duplicate') || errorMsg.includes('23505')) {
           toast.error('Статья с таким URL уже существует')
         } else {
-          toast.error('Ошибка: ' + response.error.message)
+          toast.error('Ошибка: ' + errorMsg)
         }
         setSaving(false)
         return
       }
 
-      console.log('Article saved:', response.data)
+      console.log('Article saved:', result)
       toast.success(publishNow ? 'Статья опубликована!' : 'Черновик сохранён')
       
       // Редирект
@@ -151,7 +154,7 @@ export default function NewArticle() {
       
     } catch (error) {
       console.error('Save error:', error)
-      toast.error('Ошибка: ' + (error.message || 'Попробуйте ещё раз'))
+      toast.error('Ошибка сети: ' + (error.message || 'Попробуйте ещё раз'))
       setSaving(false)
     }
   }
