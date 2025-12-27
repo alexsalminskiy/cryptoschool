@@ -372,6 +372,21 @@ export default function ArticleEditor({ value, onChange }) {
     onChange(newText)
     setShowColorPicker(false)
   }
+  
+  // Изменение размера текста
+  const handleSizeSelect = (size) => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const selectedText = value.substring(start, end) || 'текст'
+    const sizedText = `<span style="font-size: ${size}">${selectedText}</span>`
+    const newText = value.substring(0, start) + sizedText + value.substring(end)
+    
+    onChange(newText)
+    setShowSizeMenu(false)
+  }
 
   // Загрузка изображения
   const handleImageClick = () => fileInputRef.current?.click()
