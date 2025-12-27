@@ -168,12 +168,15 @@ export default function EditArticle() {
 
     setDeleting(true)
     try {
-      const { error } = await supabase
-        .from('articles')
-        .delete()
-        .eq('id', params.id)
+      const response = await fetch(`/api/articles?id=${params.id}`, {
+        method: 'DELETE',
+      })
 
-      if (error) throw error
+      const result = await response.json()
+
+      if (!response.ok || result.error) {
+        throw new Error(result.error || 'Ошибка удаления')
+      }
 
       toast.success('Статья удалена')
       router.push('/admin/articles')
