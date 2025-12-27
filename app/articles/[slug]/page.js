@@ -360,7 +360,7 @@ export default function ArticlePage() {
                 ))}
               </div>
             </div>
-          )}}
+          )}
 
           {/* Back Button */}
           <div className="mt-12 pt-8 border-t border-purple-500/20">
