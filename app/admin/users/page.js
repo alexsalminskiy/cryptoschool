@@ -175,34 +175,38 @@ export default function UsersManagement() {
 
   // Одобрить
   const handleApprove = async (userId) => {
-    const { error } = await supabase
-      .from('profiles')
-      .update({ approved: true })
-      .eq('id', userId)
-
-    if (error) {
+    try {
+      const response = await fetch('/api/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: userId, approved: true })
+      })
+      
+      if (!response.ok) throw new Error('Ошибка')
+      
+      toast.success('Одобрен!')
+      setUsers(users.map(u => u.id === userId ? { ...u, approved: true } : u))
+    } catch (error) {
       toast.error('Ошибка')
-      return
     }
-    
-    toast.success('Одобрен!')
-    setUsers(users.map(u => u.id === userId ? { ...u, approved: true } : u))
   }
 
   // Закрыть доступ
   const handleBlock = async (userId) => {
-    const { error } = await supabase
-      .from('profiles')
-      .update({ approved: false })
-      .eq('id', userId)
-
-    if (error) {
+    try {
+      const response = await fetch('/api/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: userId, approved: false })
+      })
+      
+      if (!response.ok) throw new Error('Ошибка')
+      
+      toast.success('Доступ закрыт')
+      setUsers(users.map(u => u.id === userId ? { ...u, approved: false } : u))
+    } catch (error) {
       toast.error('Ошибка')
-      return
     }
-    
-    toast.success('Доступ закрыт')
-    setUsers(users.map(u => u.id === userId ? { ...u, approved: false } : u))
   }
 
   // Удалить
