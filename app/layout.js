@@ -14,16 +14,16 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="ru" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
+          enableSystem={false}
+          disableTransitionOnChange={false}
         >
           <AuthProvider>
-            <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
+            <div className="min-h-screen bg-background transition-colors duration-300">
               <Header />
               <main>{children}</main>
               <Toaster />
