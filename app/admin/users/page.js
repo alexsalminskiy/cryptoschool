@@ -1,17 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import {
   Select,
@@ -28,10 +20,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Check, X, Search, UserCheck, UserX, Users, Plus, Trash2, Loader2 } from 'lucide-react'
+import { Check, X, Search, UserCheck, UserX, Users, Plus, Trash2, Loader2, RefreshCw } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
-import { translations } from '@/lib/i18n'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
 
@@ -41,195 +32,133 @@ export default function UsersManagement() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
-  const [language] = useState('ru')
-  const t = translations[language]
+  const [autoRefresh, setAutoRefresh] = useState(true)
   
-  // Модальное окно создания пользователя
+  // Модальные окна
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [creating, setCreating] = useState(false)
-  const [newUser, setNewUser] = useState({
-    email: '',
-    password: '',
-    firstName: '',
-    lastName: '',
-    middleName: ''
-  })
-  
-  // Модальное окно удаления
+  const [newUser, setNewUser] = useState({ email: '', password: '', firstName: '', lastName: '', middleName: '' })
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [userToDelete, setUserToDelete] = useState(null)
   const [deleting, setDeleting] = useState(false)
 
-  useEffect(() => {
-    fetchUsers()
-  }, [])
-
-  const fetchUsers = async () => {
+  // Быстрая загрузка пользователей
+  const fetchUsers = useCallback(async (showLoader = false) => {
+    if (showLoader) setLoading(true)
     try {
-      setLoading(true)
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, email, first_name, last_name, middle_name, role, approved, created_at')
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      console.log('Fetched users:', data)
       setUsers(data || [])
     } catch (error) {
-      console.error('Error fetching users:', error)
-      toast.error('Ошибка загрузки пользователей')
+      console.error('Error:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  // Одобрить пользователя
+  // Загрузка при монтировании
+  useEffect(() => {
+    fetchUsers(true)
+  }, [fetchUsers])
+
+  // Автоматическое обновление каждые 5 секунд
+  useEffect(() => {
+    if (!autoRefresh) return
+    const interval = setInterval(() => fetchUsers(false), 5000)
+    return () => clearInterval(interval)
+  }, [autoRefresh, fetchUsers])
+
+  // Одобрить
   const handleApprove = async (userId) => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          approved: true,
-          approved_at: new Date().toISOString(),
-          approved_by: currentUser?.id
-        })
-        .eq('id', userId)
-
-      if (error) throw error
-
+      await supabase.from('profiles').update({ approved: true, approved_at: new Date().toISOString() }).eq('id', userId)
       toast.success('Пользователь одобрен!')
       setUsers(users.map(u => u.id === userId ? { ...u, approved: true } : u))
     } catch (error) {
-      console.error('Error approving user:', error)
-      toast.error('Ошибка одобрения')
-    }
-  }
-
-  // Отклонить/заблокировать пользователя
-  const handleReject = async (userId) => {
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          approved: false,
-          approved_at: null,
-          approved_by: null
-        })
-        .eq('id', userId)
-
-      if (error) throw error
-
-      toast.success('Доступ закрыт')
-      setUsers(users.map(u => u.id === userId ? { ...u, approved: false } : u))
-    } catch (error) {
-      console.error('Error rejecting user:', error)
       toast.error('Ошибка')
     }
   }
 
-  // Удалить пользователя
+  // Закрыть доступ
+  const handleReject = async (userId) => {
+    try {
+      await supabase.from('profiles').update({ approved: false }).eq('id', userId)
+      toast.success('Доступ закрыт')
+      setUsers(users.map(u => u.id === userId ? { ...u, approved: false } : u))
+    } catch (error) {
+      toast.error('Ошибка')
+    }
+  }
+
+  // Удалить
   const handleDelete = async () => {
     if (!userToDelete) return
-    
     setDeleting(true)
     try {
-      // Удаляем профиль
-      const { error } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userToDelete.id)
-
-      if (error) throw error
-
-      toast.success('Пользователь удалён')
+      await supabase.from('profiles').delete().eq('id', userToDelete.id)
+      toast.success('Удалён')
       setUsers(users.filter(u => u.id !== userToDelete.id))
       setShowDeleteModal(false)
       setUserToDelete(null)
     } catch (error) {
-      console.error('Error deleting user:', error)
-      toast.error('Ошибка удаления')
+      toast.error('Ошибка')
     } finally {
       setDeleting(false)
     }
   }
 
-  // Создать нового пользователя (админом)
+  // Создать пользователя
   const handleCreateUser = async () => {
     if (!newUser.email || !newUser.password || !newUser.firstName || !newUser.lastName) {
-      toast.error('Заполните все обязательные поля')
+      toast.error('Заполните все поля')
       return
     }
-
     setCreating(true)
     try {
-      // 1. Создаём пользователя в Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUser.email,
-        password: newUser.password,
-        options: {
-          data: {
-            first_name: newUser.firstName,
-            last_name: newUser.lastName
-          }
-        }
+        password: newUser.password
       })
-
       if (authError) throw authError
 
-      // 2. Создаём профиль (сразу одобренный)
       if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: authData.user.id,
-            email: newUser.email,
-            first_name: newUser.firstName,
-            last_name: newUser.lastName,
-            middle_name: newUser.middleName || null,
-            role: 'user',
-            approved: true,
-            approved_at: new Date().toISOString(),
-            approved_by: currentUser?.id
-          }, {
-            onConflict: 'id'
-          })
-
-        if (profileError) {
-          console.error('Profile error:', profileError)
-        }
+        await supabase.from('profiles').upsert({
+          id: authData.user.id,
+          email: newUser.email,
+          first_name: newUser.firstName,
+          last_name: newUser.lastName,
+          middle_name: newUser.middleName || null,
+          role: 'user',
+          approved: true
+        }, { onConflict: 'id' })
       }
 
-      toast.success('Пользователь создан и одобрен!')
+      toast.success('Пользователь создан!')
       setShowCreateModal(false)
       setNewUser({ email: '', password: '', firstName: '', lastName: '', middleName: '' })
-      fetchUsers()
+      fetchUsers(false)
     } catch (error) {
-      console.error('Error creating user:', error)
-      toast.error(error.message || 'Ошибка создания')
+      toast.error(error.message || 'Ошибка')
     } finally {
       setCreating(false)
     }
   }
 
-  // Фильтрация пользователей
+  // Фильтрация
   const filteredUsers = users.filter(user => {
-    const searchLower = searchTerm.toLowerCase()
-    const matchesSearch = 
-      user.email?.toLowerCase().includes(searchLower) ||
-      user.first_name?.toLowerCase().includes(searchLower) ||
-      user.last_name?.toLowerCase().includes(searchLower)
+    const search = searchTerm.toLowerCase()
+    const matches = user.email?.toLowerCase().includes(search) || 
+                   user.first_name?.toLowerCase().includes(search) ||
+                   user.last_name?.toLowerCase().includes(search)
     
-    if (filterStatus === 'pending') {
-      return matchesSearch && !user.approved && user.role !== 'admin'
-    } else if (filterStatus === 'approved') {
-      return matchesSearch && user.approved && user.role !== 'admin'
-    } else if (filterStatus === 'blocked') {
-      return matchesSearch && !user.approved && user.role !== 'admin'
-    } else if (filterStatus === 'admin') {
-      return matchesSearch && user.role === 'admin'
-    }
-    
-    return matchesSearch
+    if (filterStatus === 'pending') return matches && !user.approved && user.role !== 'admin'
+    if (filterStatus === 'approved') return matches && user.approved && user.role !== 'admin'
+    if (filterStatus === 'admin') return matches && user.role === 'admin'
+    return matches
   })
 
   const stats = {
@@ -239,300 +168,160 @@ export default function UsersManagement() {
     admins: users.filter(u => u.role === 'admin').length
   }
 
-  // Полное имя пользователя
-  const getFullName = (user) => {
-    const parts = [user.last_name, user.first_name, user.middle_name].filter(Boolean)
-    return parts.length > 0 ? parts.join(' ') : '—'
-  }
+  const getFullName = (u) => [u.last_name, u.first_name, u.middle_name].filter(Boolean).join(' ') || '—'
 
   return (
     <div>
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-purple-300 mb-2">
-            {t.usersManagement}
-          </h1>
-          <p className="text-slate-400">
-            Управление доступом пользователей к платформе
-          </p>
+          <h1 className="text-2xl font-bold text-purple-300">Управление пользователями</h1>
+          <p className="text-sm text-slate-400">Управление доступом к платформе</p>
         </div>
-        <Button
-          onClick={() => setShowCreateModal(true)}
-          className="bg-purple-600 hover:bg-purple-700"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Создать пользователя
-        </Button>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4 mb-6">
-        <div className="rounded-lg border border-purple-900/50 bg-slate-900/50 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-400">Всего</p>
-              <p className="text-2xl font-bold text-purple-300">{stats.total}</p>
-            </div>
-            <Users className="h-8 w-8 text-purple-400" />
-          </div>
-        </div>
-        <div className="rounded-lg border border-yellow-900/50 bg-slate-900/50 p-4 cursor-pointer hover:bg-slate-800/50" onClick={() => setFilterStatus('pending')}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-400">Ожидают</p>
-              <p className="text-2xl font-bold text-yellow-300">{stats.pending}</p>
-            </div>
-            <UserX className="h-8 w-8 text-yellow-400" />
-          </div>
-        </div>
-        <div className="rounded-lg border border-green-900/50 bg-slate-900/50 p-4 cursor-pointer hover:bg-slate-800/50" onClick={() => setFilterStatus('approved')}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-400">Одобрено</p>
-              <p className="text-2xl font-bold text-green-300">{stats.approved}</p>
-            </div>
-            <UserCheck className="h-8 w-8 text-green-400" />
-          </div>
-        </div>
-        <div className="rounded-lg border border-blue-900/50 bg-slate-900/50 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-400">Админы</p>
-              <p className="text-2xl font-bold text-blue-300">{stats.admins}</p>
-            </div>
-            <Users className="h-8 w-8 text-blue-400" />
-          </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setAutoRefresh(!autoRefresh)}
+            className={autoRefresh ? 'border-green-500 text-green-400' : 'border-slate-600'}
+          >
+            <RefreshCw className={`h-4 w-4 mr-1 ${autoRefresh ? 'animate-spin' : ''}`} />
+            {autoRefresh ? 'Авто' : 'Выкл'}
+          </Button>
+          <Button onClick={() => setShowCreateModal(true)} className="bg-purple-600 hover:bg-purple-700" size="sm">
+            <Plus className="h-4 w-4 mr-1" /> Создать
+          </Button>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="mb-6 flex flex-col md:flex-row gap-4">
+      {/* Stats */}
+      <div className="grid gap-3 grid-cols-4 mb-4">
+        <div className="rounded-lg border border-purple-900/50 bg-slate-900/50 p-3 cursor-pointer" onClick={() => setFilterStatus('all')}>
+          <p className="text-xs text-slate-400">Всего</p>
+          <p className="text-xl font-bold text-purple-300">{stats.total}</p>
+        </div>
+        <div className="rounded-lg border border-yellow-900/50 bg-slate-900/50 p-3 cursor-pointer" onClick={() => setFilterStatus('pending')}>
+          <p className="text-xs text-slate-400">Ожидают</p>
+          <p className="text-xl font-bold text-yellow-300">{stats.pending}</p>
+        </div>
+        <div className="rounded-lg border border-green-900/50 bg-slate-900/50 p-3 cursor-pointer" onClick={() => setFilterStatus('approved')}>
+          <p className="text-xs text-slate-400">Одобрено</p>
+          <p className="text-xl font-bold text-green-300">{stats.approved}</p>
+        </div>
+        <div className="rounded-lg border border-blue-900/50 bg-slate-900/50 p-3">
+          <p className="text-xs text-slate-400">Админы</p>
+          <p className="text-xl font-bold text-blue-300">{stats.admins}</p>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="mb-4 flex gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input
-            placeholder="Поиск по email или имени..."
+            placeholder="Поиск..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-slate-800 border-slate-700"
+            className="pl-9 bg-slate-800 border-slate-700 h-9"
           />
         </div>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-full md:w-[200px] bg-slate-800 border-slate-700">
+          <SelectTrigger className="w-[150px] bg-slate-800 border-slate-700 h-9">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Все пользователи</SelectItem>
-            <SelectItem value="pending">Ожидают одобрения</SelectItem>
-            <SelectItem value="approved">Одобренные</SelectItem>
-            <SelectItem value="admin">Администраторы</SelectItem>
+            <SelectItem value="all">Все</SelectItem>
+            <SelectItem value="pending">Ожидают</SelectItem>
+            <SelectItem value="approved">Одобрены</SelectItem>
+            <SelectItem value="admin">Админы</SelectItem>
           </SelectContent>
         </Select>
-        <Button variant="outline" onClick={fetchUsers} className="border-purple-600 text-purple-400">
-          Обновить
-        </Button>
       </div>
 
-      {/* Users Table */}
+      {/* Users List */}
       {loading ? (
-        <div className="text-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-purple-400 mx-auto" />
-          <p className="text-purple-400 mt-2">Загрузка...</p>
+        <div className="text-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin text-purple-400 mx-auto" />
         </div>
       ) : filteredUsers.length === 0 ? (
-        <div className="text-center py-12 bg-slate-900/50 rounded-lg border border-purple-900/50">
-          <p className="text-slate-400">
-            {searchTerm || filterStatus !== 'all' 
-              ? 'Пользователи не найдены' 
-              : 'Пока нет зарегистрированных пользователей'}
-          </p>
-        </div>
+        <div className="text-center py-8 text-slate-400">Нет пользователей</div>
       ) : (
-        <div className="border border-purple-900/50 rounded-lg overflow-hidden bg-slate-900/50">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-purple-900/50 hover:bg-slate-800/50">
-                <TableHead className="text-purple-300">ФИО</TableHead>
-                <TableHead className="text-purple-300">Email</TableHead>
-                <TableHead className="text-purple-300">{t.status}</TableHead>
-                <TableHead className="text-purple-300">Дата регистрации</TableHead>
-                <TableHead className="text-purple-300 text-right">{t.actions}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredUsers.map((user) => (
-                <TableRow
-                  key={user.id}
-                  className="border-purple-900/50 hover:bg-slate-800/50"
-                >
-                  <TableCell className="font-medium text-slate-200">
-                    {getFullName(user)}
-                  </TableCell>
-                  <TableCell className="text-slate-300">
-                    {user.email}
-                    {user.id === currentUser?.id && (
-                      <Badge className="ml-2 bg-purple-600">Вы</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {user.role === 'admin' ? (
-                      <Badge className="bg-blue-600">Администратор</Badge>
-                    ) : user.approved ? (
-                      <Badge className="bg-green-600">
-                        <Check className="h-3 w-3 mr-1" />
-                        Доступ открыт
-                      </Badge>
+        <div className="space-y-2">
+          {filteredUsers.map((user) => (
+            <div key={user.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-900/50 border border-purple-900/30">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-slate-200 truncate">{getFullName(user)}</span>
+                  {user.id === currentUser?.id && <Badge className="bg-purple-600 text-xs">Вы</Badge>}
+                </div>
+                <p className="text-sm text-slate-400 truncate">{user.email}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                {user.role === 'admin' ? (
+                  <Badge className="bg-blue-600">Админ</Badge>
+                ) : user.approved ? (
+                  <Badge className="bg-green-600"><Check className="h-3 w-3 mr-1" />Одобрен</Badge>
+                ) : (
+                  <Badge className="bg-yellow-600"><X className="h-3 w-3 mr-1" />Ожидает</Badge>
+                )}
+                
+                {user.role !== 'admin' && user.id !== currentUser?.id && (
+                  <div className="flex gap-1">
+                    {!user.approved ? (
+                      <Button size="sm" variant="ghost" onClick={() => handleApprove(user.id)} className="h-8 text-green-400 hover:bg-green-900/20">
+                        <Check className="h-4 w-4" />
+                      </Button>
                     ) : (
-                      <Badge className="bg-yellow-600">
-                        <X className="h-3 w-3 mr-1" />
-                        Ожидает
-                      </Badge>
+                      <Button size="sm" variant="ghost" onClick={() => handleReject(user.id)} className="h-8 text-yellow-400 hover:bg-yellow-900/20">
+                        <X className="h-4 w-4" />
+                      </Button>
                     )}
-                  </TableCell>
-                  <TableCell className="text-slate-400">
-                    {user.created_at ? format(new Date(user.created_at), 'dd.MM.yyyy HH:mm') : '—'}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {user.role !== 'admin' && user.id !== currentUser?.id && (
-                      <div className="flex items-center justify-end gap-2">
-                        {!user.approved ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleApprove(user.id)}
-                            className="text-green-400 hover:text-green-300 hover:bg-green-900/20"
-                          >
-                            <Check className="h-4 w-4 mr-1" />
-                            Одобрить
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleReject(user.id)}
-                            className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-900/20"
-                          >
-                            <X className="h-4 w-4 mr-1" />
-                            Закрыть доступ
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setUserToDelete(user)
-                            setShowDeleteModal(true)
-                          }}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                    <Button size="sm" variant="ghost" onClick={() => { setUserToDelete(user); setShowDeleteModal(true) }} className="h-8 text-red-400 hover:bg-red-900/20">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Модальное окно создания пользователя */}
+      {/* Create Modal */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
         <DialogContent className="bg-slate-900 border-purple-900/50">
           <DialogHeader>
             <DialogTitle className="text-purple-300">Создать пользователя</DialogTitle>
-            <DialogDescription>
-              Пользователь будет сразу одобрен и получит доступ к материалам
-            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Фамилия *</Label>
-                <Input
-                  value={newUser.lastName}
-                  onChange={(e) => setNewUser({...newUser, lastName: e.target.value})}
-                  className="bg-slate-800 border-slate-700 mt-1"
-                  placeholder="Иванов"
-                />
-              </div>
-              <div>
-                <Label>Имя *</Label>
-                <Input
-                  value={newUser.firstName}
-                  onChange={(e) => setNewUser({...newUser, firstName: e.target.value})}
-                  className="bg-slate-800 border-slate-700 mt-1"
-                  placeholder="Иван"
-                />
-              </div>
+          <div className="space-y-3 py-2">
+            <div className="grid grid-cols-2 gap-2">
+              <Input placeholder="Фамилия *" value={newUser.lastName} onChange={(e) => setNewUser({...newUser, lastName: e.target.value})} className="bg-slate-800 border-slate-700" />
+              <Input placeholder="Имя *" value={newUser.firstName} onChange={(e) => setNewUser({...newUser, firstName: e.target.value})} className="bg-slate-800 border-slate-700" />
             </div>
-            <div>
-              <Label>Отчество</Label>
-              <Input
-                value={newUser.middleName}
-                onChange={(e) => setNewUser({...newUser, middleName: e.target.value})}
-                className="bg-slate-800 border-slate-700 mt-1"
-                placeholder="Иванович"
-              />
-            </div>
-            <div>
-              <Label>Email *</Label>
-              <Input
-                type="email"
-                value={newUser.email}
-                onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                className="bg-slate-800 border-slate-700 mt-1"
-                placeholder="user@email.com"
-              />
-            </div>
-            <div>
-              <Label>Пароль *</Label>
-              <Input
-                type="password"
-                value={newUser.password}
-                onChange={(e) => setNewUser({...newUser, password: e.target.value})}
-                className="bg-slate-800 border-slate-700 mt-1"
-                placeholder="Минимум 6 символов"
-              />
-            </div>
+            <Input placeholder="Отчество" value={newUser.middleName} onChange={(e) => setNewUser({...newUser, middleName: e.target.value})} className="bg-slate-800 border-slate-700" />
+            <Input type="email" placeholder="Email *" value={newUser.email} onChange={(e) => setNewUser({...newUser, email: e.target.value})} className="bg-slate-800 border-slate-700" />
+            <Input type="password" placeholder="Пароль *" value={newUser.password} onChange={(e) => setNewUser({...newUser, password: e.target.value})} className="bg-slate-800 border-slate-700" />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateModal(false)}>
-              Отмена
-            </Button>
-            <Button 
-              onClick={handleCreateUser} 
-              disabled={creating}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              {creating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              {creating ? 'Создание...' : 'Создать'}
+            <Button variant="outline" onClick={() => setShowCreateModal(false)}>Отмена</Button>
+            <Button onClick={handleCreateUser} disabled={creating} className="bg-purple-600">
+              {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Создать'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Модальное окно удаления */}
+      {/* Delete Modal */}
       <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
         <DialogContent className="bg-slate-900 border-red-900/50">
           <DialogHeader>
-            <DialogTitle className="text-red-400">Удалить пользователя?</DialogTitle>
-            <DialogDescription>
-              Пользователь <strong>{userToDelete?.email}</strong> будет удалён и потеряет доступ к платформе. Это действие нельзя отменить.
-            </DialogDescription>
+            <DialogTitle className="text-red-400">Удалить?</DialogTitle>
+            <DialogDescription>{userToDelete?.email}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
-              Отмена
-            </Button>
-            <Button 
-              onClick={handleDelete} 
-              disabled={deleting}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {deleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trash2 className="h-4 w-4 mr-2" />}
-              {deleting ? 'Удаление...' : 'Удалить'}
+            <Button variant="outline" onClick={() => setShowDeleteModal(false)}>Отмена</Button>
+            <Button onClick={handleDelete} disabled={deleting} className="bg-red-600">
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Удалить'}
             </Button>
           </DialogFooter>
         </DialogContent>
