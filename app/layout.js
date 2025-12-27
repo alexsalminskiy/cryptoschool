@@ -1,4 +1,4 @@
-import { Inter, Merriweather } from 'next/font/google'
+import { Inter, Open_Sans } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -7,10 +7,10 @@ import { Toaster } from '@/components/ui/sonner'
 import HeaderWrapper from '@/components/HeaderWrapper'
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'], variable: '--font-inter' })
-const merriweather = Merriweather({ 
-  weight: ['300', '400', '700'],
+const openSans = Open_Sans({ 
+  weight: ['400', '500', '600', '700'],
   subsets: ['latin', 'cyrillic'],
-  variable: '--font-merriweather'
+  variable: '--font-opensans'
 })
 
 export const metadata = {
