@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { signIn } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { translations } from '@/lib/i18n'
+import { Loader2 } from 'lucide-react'
 
 export default function SignInPage() {
   const router = useRouter()
@@ -24,16 +25,43 @@ export default function SignInPage() {
     setLoading(true)
 
     try {
-      const { error } = await signIn(email, password)
-      
-      if (error) {
-        toast.error(error.message)
-      } else {
-        toast.success(t.loginSuccess)
-        router.push('/')
+      // Вход в систему
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password
+      })
+
+      if (authError) {
+        if (authError.message.includes('Invalid login')) {
+          toast.error('Неверный email или пароль')
+        } else {
+          toast.error(authError.message)
+        }
+        return
       }
+
+      // Проверяем профиль пользователя
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('approved, role')
+        .eq('id', authData.user.id)
+        .single()
+
+      toast.success('Вход выполнен!')
+
+      // Перенаправление в зависимости от статуса
+      if (profile?.role === 'admin') {
+        router.push('/admin')
+      } else if (profile?.approved) {
+        router.push('/articles')
+      } else {
+        router.push('/pending-approval')
+      }
+      
+      router.refresh()
+
     } catch (error) {
-      toast.error(t.error)
+      toast.error('Ошибка входа')
     } finally {
       setLoading(false)
     }
@@ -42,11 +70,11 @@ export default function SignInPage() {
   return (
     <div className="container mx-auto px-4 py-20">
       <div className="mx-auto max-w-md">
-        <Card className="border-purple-900/50 bg-slate-900/50 backdrop-blur">
+        <Card className="border-purple-900/50 bg-card/50 backdrop-blur">
           <CardHeader>
-            <CardTitle className="text-2xl text-purple-300">{t.signInTitle}</CardTitle>
-            <CardDescription className="text-slate-400">
-              {t.email} и {t.password}
+            <CardTitle className="text-2xl text-purple-500 dark:text-purple-300">{t.signInTitle}</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Войдите в свой аккаунт
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
@@ -60,7 +88,7 @@ export default function SignInPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-slate-800 border-slate-700"
+                  className="bg-background border-border"
                 />
               </div>
               <div className="space-y-2">
@@ -68,19 +96,12 @@ export default function SignInPage() {
                 <Input
                   id="password"
                   type="password"
+                  placeholder="Ваш пароль"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="bg-slate-800 border-slate-700"
+                  className="bg-background border-border"
                 />
-              </div>
-              <div className="text-right">
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-purple-400 hover:text-purple-300"
-                >
-                  {t.forgotPassword}
-                </Link>
               </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
@@ -89,11 +110,15 @@ export default function SignInPage() {
                 className="w-full bg-purple-600 hover:bg-purple-700"
                 disabled={loading}
               >
-                {loading ? t.loading : t.signIn}
+                {loading ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Вход...</>
+                ) : (
+                  t.signIn
+                )}
               </Button>
-              <div className="text-center text-sm text-slate-400">
+              <div className="text-center text-sm text-muted-foreground">
                 {t.noAccount}{' '}
-                <Link href="/sign-up" className="text-purple-400 hover:text-purple-300">
+                <Link href="/sign-up" className="text-purple-500 hover:text-purple-400">
                   {t.signUp}
                 </Link>
               </div>

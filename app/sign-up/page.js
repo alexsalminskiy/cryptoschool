@@ -16,6 +16,7 @@ export default function SignUpPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [middleName, setMiddleName] = useState('')
@@ -26,13 +27,14 @@ export default function SignUpPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
+    // Валидация
     if (!firstName.trim() || !lastName.trim()) {
       toast.error('Укажите Фамилию и Имя')
       return
     }
 
-    if (!email.trim() || !password.trim()) {
-      toast.error('Укажите Email и Пароль')
+    if (!email.trim()) {
+      toast.error('Укажите Email')
       return
     }
 
@@ -40,28 +42,31 @@ export default function SignUpPage() {
       toast.error('Пароль должен быть минимум 6 символов')
       return
     }
+
+    // Проверка совпадения паролей
+    if (password !== confirmPassword) {
+      toast.error('Пароли не совпадают!')
+      return
+    }
     
     setLoading(true)
 
     try {
-      console.log('Starting registration for:', email)
-
-      // 1. Регистрация в Supabase Auth
+      // Регистрация без email подтверждения
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email.trim(),
         password: password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          // Отключаем email подтверждение
+          emailRedirectTo: undefined,
           data: {
             first_name: firstName.trim(),
-            last_name: lastName.trim(),
-            middle_name: middleName.trim() || null
+            last_name: lastName.trim()
           }
         }
       })
       
       if (authError) {
-        console.error('Auth error:', authError)
         if (authError.message.includes('already registered')) {
           toast.error('Этот email уже зарегистрирован')
         } else {
@@ -70,41 +75,25 @@ export default function SignUpPage() {
         return
       }
 
-      console.log('Auth successful:', authData.user?.id)
-
-      // 2. Создаём профиль вручную (на случай если триггер не сработал)
+      // Создаём профиль
       if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: authData.user.id,
-            email: email.trim(),
-            first_name: firstName.trim(),
-            last_name: lastName.trim(),
-            middle_name: middleName.trim() || null,
-            role: 'user',
-            approved: false,
-            created_at: new Date().toISOString()
-          }, {
-            onConflict: 'id'
-          })
-
-        if (profileError) {
-          console.error('Profile creation error:', profileError)
-          // Не прерываем - профиль мог создаться через триггер
-        } else {
-          console.log('Profile created successfully')
-        }
+        await supabase.from('profiles').upsert({
+          id: authData.user.id,
+          email: email.trim(),
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          middle_name: middleName.trim() || null,
+          role: 'user',
+          approved: false,
+          created_at: new Date().toISOString()
+        }, { onConflict: 'id' })
       }
 
       toast.success('Регистрация успешна!')
-      
-      // 3. Перенаправляем на страницу ожидания
       router.push('/pending-approval')
       
     } catch (error) {
-      console.error('Sign up error:', error)
-      toast.error('Ошибка регистрации: ' + error.message)
+      toast.error('Ошибка регистрации')
     } finally {
       setLoading(false)
     }
@@ -182,18 +171,33 @@ export default function SignUpPage() {
                   className="bg-background border-border"
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Подтвердите пароль *</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="Повторите пароль"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className={`bg-background border-border ${
+                    confirmPassword && password !== confirmPassword ? 'border-red-500' : ''
+                  }`}
+                />
+                {confirmPassword && password !== confirmPassword && (
+                  <p className="text-sm text-red-500">Пароли не совпадают</p>
+                )}
+              </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
               <Button
                 type="submit"
                 className="w-full bg-purple-600 hover:bg-purple-700"
-                disabled={loading}
+                disabled={loading || (confirmPassword && password !== confirmPassword)}
               >
                 {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Регистрация...
-                  </>
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Регистрация...</>
                 ) : (
                   t.signUp
                 )}
