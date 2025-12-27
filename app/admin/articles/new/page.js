@@ -123,30 +123,27 @@ export default function NewArticle() {
 
       console.log('Saving article:', articleData)
 
-      // Используем Promise с таймаутом
-      const savePromise = supabase
+      // Простой запрос без Promise.race
+      const response = await supabase
         .from('articles')
         .insert([articleData])
         .select()
         .single()
 
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Таймаут - попробуйте ещё раз')), 15000)
-      )
+      console.log('Supabase response:', response)
 
-      const { data, error } = await Promise.race([savePromise, timeoutPromise])
-
-      if (error) {
-        console.error('Supabase error:', error)
-        if (error.code === '23505' || error.message?.includes('duplicate')) {
+      if (response.error) {
+        console.error('Supabase error:', response.error)
+        if (response.error.code === '23505' || response.error.message?.includes('duplicate')) {
           toast.error('Статья с таким URL уже существует')
         } else {
-          toast.error('Ошибка: ' + error.message)
+          toast.error('Ошибка: ' + response.error.message)
         }
+        setSaving(false)
         return
       }
 
-      console.log('Article saved:', data)
+      console.log('Article saved:', response.data)
       toast.success(publishNow ? 'Статья опубликована!' : 'Черновик сохранён')
       
       // Редирект
@@ -155,7 +152,6 @@ export default function NewArticle() {
     } catch (error) {
       console.error('Save error:', error)
       toast.error('Ошибка: ' + (error.message || 'Попробуйте ещё раз'))
-    } finally {
       setSaving(false)
     }
   }
