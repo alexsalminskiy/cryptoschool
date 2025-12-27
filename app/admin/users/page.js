@@ -3,8 +3,24 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Check, X, Search, Plus, Trash2, Loader2 } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Check, X, Search, Plus, Trash2, Loader2, Edit, Shield } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
@@ -13,45 +29,150 @@ export default function UsersManagement() {
   const { user: currentUser } = useAuth()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
-
-  // Загрузка пользователей
-  const fetchUsers = async () => {
-    setLoading(true)
-    setError(null)
-    
-    try {
-      console.log('Fetching users...')
-      
-      const { data, error: fetchError } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      console.log('Result:', { data, error: fetchError })
-
-      if (fetchError) {
-        setError(fetchError.message)
-        toast.error('Ошибка: ' + fetchError.message)
-        return
-      }
-
-      setUsers(data || [])
-      console.log('Users loaded:', data?.length)
-    } catch (err) {
-      console.error('Error:', err)
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
+  
+  // Модальное окно создания
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [newUser, setNewUser] = useState({
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    middleName: '',
+    role: 'user'
+  })
+  
+  // Модальное окно редактирования
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingUser, setEditingUser] = useState(null)
+  const [saving, setSaving] = useState(false)
+  
+  // Модальное окно удаления
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [userToDelete, setUserToDelete] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     fetchUsers()
   }, [])
 
-  // Одобрить пользователя
+  const fetchUsers = async () => {
+    setLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setUsers(data || [])
+    } catch (error) {
+      console.error('Error:', error)
+      toast.error('Ошибка загрузки')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Создать пользователя/админа
+  const handleCreate = async () => {
+    if (!newUser.email || !newUser.password || !newUser.firstName || !newUser.lastName) {
+      toast.error('Заполните все обязательные поля')
+      return
+    }
+
+    if (newUser.password.length < 6) {
+      toast.error('Пароль минимум 6 символов')
+      return
+    }
+
+    setCreating(true)
+    try {
+      // Регистрация в Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: newUser.email.trim(),
+        password: newUser.password
+      })
+
+      if (authError) throw authError
+
+      // Создаём профиль
+      if (authData.user) {
+        const { error: profileError } = await supabase.from('profiles').upsert({
+          id: authData.user.id,
+          email: newUser.email.trim(),
+          first_name: newUser.firstName.trim(),
+          last_name: newUser.lastName.trim(),
+          middle_name: newUser.middleName.trim() || null,
+          role: newUser.role,
+          approved: true,
+          created_at: new Date().toISOString()
+        }, { onConflict: 'id' })
+
+        if (profileError) throw profileError
+      }
+
+      toast.success(newUser.role === 'admin' ? 'Админ создан!' : 'Пользователь создан!')
+      setShowCreateModal(false)
+      setNewUser({ email: '', password: '', firstName: '', lastName: '', middleName: '', role: 'user' })
+      fetchUsers()
+    } catch (error) {
+      console.error('Error:', error)
+      if (error.message?.includes('already registered')) {
+        toast.error('Этот email уже зарегистрирован')
+      } else {
+        toast.error(error.message || 'Ошибка создания')
+      }
+    } finally {
+      setCreating(false)
+    }
+  }
+
+  // Редактировать пользователя
+  const handleEdit = (user) => {
+    setEditingUser({
+      id: user.id,
+      email: user.email,
+      first_name: user.first_name || '',
+      last_name: user.last_name || '',
+      middle_name: user.middle_name || '',
+      role: user.role,
+      approved: user.approved
+    })
+    setShowEditModal(true)
+  }
+
+  // Сохранить изменения
+  const handleSaveEdit = async () => {
+    if (!editingUser) return
+
+    setSaving(true)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          first_name: editingUser.first_name,
+          last_name: editingUser.last_name,
+          middle_name: editingUser.middle_name || null,
+          role: editingUser.role,
+          approved: editingUser.approved
+        })
+        .eq('id', editingUser.id)
+
+      if (error) throw error
+
+      toast.success('Сохранено!')
+      setShowEditModal(false)
+      fetchUsers()
+    } catch (error) {
+      toast.error('Ошибка сохранения')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Одобрить
   const handleApprove = async (userId) => {
     const { error } = await supabase
       .from('profiles')
@@ -68,7 +189,7 @@ export default function UsersManagement() {
   }
 
   // Закрыть доступ
-  const handleReject = async (userId) => {
+  const handleBlock = async (userId) => {
     const { error } = await supabase
       .from('profiles')
       .update({ approved: false })
@@ -84,21 +205,45 @@ export default function UsersManagement() {
   }
 
   // Удалить
-  const handleDelete = async (userId, email) => {
-    if (!confirm(`Удалить пользователя ${email}?`)) return
+  const handleDelete = async () => {
+    if (!userToDelete) return
+    
+    setDeleting(true)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userToDelete.id)
+
+      if (error) throw error
+
+      toast.success('Удалён')
+      setUsers(users.filter(u => u.id !== userToDelete.id))
+      setShowDeleteModal(false)
+      setUserToDelete(null)
+    } catch (error) {
+      toast.error('Ошибка удаления')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  // Сделать админом / убрать права админа
+  const handleToggleAdmin = async (userId, currentRole) => {
+    const newRole = currentRole === 'admin' ? 'user' : 'admin'
     
     const { error } = await supabase
       .from('profiles')
-      .delete()
+      .update({ role: newRole })
       .eq('id', userId)
 
     if (error) {
-      toast.error('Ошибка удаления')
+      toast.error('Ошибка')
       return
     }
     
-    toast.success('Удалён')
-    setUsers(users.filter(u => u.id !== userId))
+    toast.success(newRole === 'admin' ? 'Назначен админом!' : 'Права админа сняты')
+    setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u))
   }
 
   // Фильтрация
@@ -123,8 +268,11 @@ export default function UsersManagement() {
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-purple-300">Управление пользователями</h1>
+        <Button onClick={() => setShowCreateModal(true)} className="bg-purple-600 hover:bg-purple-700">
+          <Plus className="h-4 w-4 mr-2" /> Создать
+        </Button>
       </div>
 
       {/* Статистика */}
@@ -147,12 +295,12 @@ export default function UsersManagement() {
         </div>
       </div>
 
-      {/* Поиск и обновление */}
+      {/* Поиск */}
       <div className="flex gap-2 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
-            placeholder="Поиск..."
+            placeholder="Поиск по email или ФИО..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 bg-slate-800 border-slate-700"
@@ -163,23 +311,13 @@ export default function UsersManagement() {
         </Button>
       </div>
 
-      {/* Ошибка */}
-      {error && (
-        <div className="p-4 mb-4 bg-red-900/20 border border-red-500 rounded-lg text-red-400">
-          Ошибка: {error}
-        </div>
-      )}
-
-      {/* Загрузка */}
+      {/* Список */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-purple-400" />
-          <span className="ml-2 text-purple-400">Загрузка...</span>
         </div>
       ) : filteredUsers.length === 0 ? (
-        <div className="text-center py-12 text-slate-400">
-          Нет пользователей
-        </div>
+        <div className="text-center py-12 text-slate-400">Нет пользователей</div>
       ) : (
         <div className="space-y-2">
           {filteredUsers.map((user) => (
@@ -187,8 +325,8 @@ export default function UsersManagement() {
               key={user.id} 
               className="flex items-center justify-between p-4 rounded-lg bg-slate-800/50 border border-slate-700"
             >
-              <div>
-                <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
                   <span className="font-medium text-white">{getFullName(user)}</span>
                   {user.role === 'admin' && <Badge className="bg-blue-600">Админ</Badge>}
                   {user.id === currentUser?.id && <Badge className="bg-purple-600">Вы</Badge>}
@@ -197,50 +335,257 @@ export default function UsersManagement() {
               </div>
               
               <div className="flex items-center gap-2">
+                {/* Статус */}
                 {user.role !== 'admin' && (
-                  <>
-                    {user.approved ? (
-                      <>
-                        <Badge className="bg-green-600">Доступ открыт</Badge>
+                  user.approved ? (
+                    <Badge className="bg-green-600">Доступ открыт</Badge>
+                  ) : (
+                    <Badge className="bg-yellow-600">Ожидает</Badge>
+                  )
+                )}
+                
+                {/* Действия */}
+                {user.id !== currentUser?.id && (
+                  <div className="flex gap-1 ml-2">
+                    {/* Одобрить/Заблокировать */}
+                    {user.role !== 'admin' && (
+                      user.approved ? (
                         <Button 
                           size="sm" 
                           variant="ghost"
-                          onClick={() => handleReject(user.id)}
+                          onClick={() => handleBlock(user.id)}
                           className="text-yellow-400 hover:bg-yellow-900/20"
+                          title="Закрыть доступ"
                         >
-                          <X className="h-4 w-4 mr-1" /> Закрыть
+                          <X className="h-4 w-4" />
                         </Button>
-                      </>
-                    ) : (
-                      <>
-                        <Badge className="bg-yellow-600">Ожидает</Badge>
+                      ) : (
                         <Button 
                           size="sm" 
                           variant="ghost"
                           onClick={() => handleApprove(user.id)}
                           className="text-green-400 hover:bg-green-900/20"
+                          title="Одобрить"
                         >
-                          <Check className="h-4 w-4 mr-1" /> Одобрить
+                          <Check className="h-4 w-4" />
                         </Button>
-                      </>
+                      )
                     )}
-                    {user.id !== currentUser?.id && (
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        onClick={() => handleDelete(user.id, user.email)}
-                        className="text-red-400 hover:bg-red-900/20"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </>
+                    
+                    {/* Сделать/убрать админа */}
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => handleToggleAdmin(user.id, user.role)}
+                      className={user.role === 'admin' ? "text-yellow-400 hover:bg-yellow-900/20" : "text-blue-400 hover:bg-blue-900/20"}
+                      title={user.role === 'admin' ? "Снять права админа" : "Сделать админом"}
+                    >
+                      <Shield className="h-4 w-4" />
+                    </Button>
+                    
+                    {/* Редактировать */}
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => handleEdit(user)}
+                      className="text-purple-400 hover:bg-purple-900/20"
+                      title="Редактировать"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    
+                    {/* Удалить */}
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => { setUserToDelete(user); setShowDeleteModal(true) }}
+                      className="text-red-400 hover:bg-red-900/20"
+                      title="Удалить"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Модальное окно создания */}
+      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <DialogContent className="bg-slate-900 border-purple-900/50">
+          <DialogHeader>
+            <DialogTitle className="text-purple-300">Создать пользователя</DialogTitle>
+            <DialogDescription>Заполните данные нового пользователя</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Фамилия *</Label>
+                <Input 
+                  value={newUser.lastName} 
+                  onChange={(e) => setNewUser({...newUser, lastName: e.target.value})} 
+                  className="bg-slate-800 border-slate-700 mt-1"
+                  placeholder="Иванов"
+                />
+              </div>
+              <div>
+                <Label>Имя *</Label>
+                <Input 
+                  value={newUser.firstName} 
+                  onChange={(e) => setNewUser({...newUser, firstName: e.target.value})} 
+                  className="bg-slate-800 border-slate-700 mt-1"
+                  placeholder="Иван"
+                />
+              </div>
+            </div>
+            <div>
+              <Label>Отчество</Label>
+              <Input 
+                value={newUser.middleName} 
+                onChange={(e) => setNewUser({...newUser, middleName: e.target.value})} 
+                className="bg-slate-800 border-slate-700 mt-1"
+                placeholder="Иванович"
+              />
+            </div>
+            <div>
+              <Label>Email *</Label>
+              <Input 
+                type="email"
+                value={newUser.email} 
+                onChange={(e) => setNewUser({...newUser, email: e.target.value})} 
+                className="bg-slate-800 border-slate-700 mt-1"
+                placeholder="user@email.com"
+              />
+            </div>
+            <div>
+              <Label>Пароль *</Label>
+              <Input 
+                type="password"
+                value={newUser.password} 
+                onChange={(e) => setNewUser({...newUser, password: e.target.value})} 
+                className="bg-slate-800 border-slate-700 mt-1"
+                placeholder="Минимум 6 символов"
+              />
+            </div>
+            <div>
+              <Label>Роль</Label>
+              <Select value={newUser.role} onValueChange={(v) => setNewUser({...newUser, role: v})}>
+                <SelectTrigger className="bg-slate-800 border-slate-700 mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">Пользователь</SelectItem>
+                  <SelectItem value="admin">Администратор</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateModal(false)}>Отмена</Button>
+            <Button onClick={handleCreate} disabled={creating} className="bg-purple-600">
+              {creating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Создать
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Модальное окно редактирования */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent className="bg-slate-900 border-purple-900/50">
+          <DialogHeader>
+            <DialogTitle className="text-purple-300">Редактировать пользователя</DialogTitle>
+            <DialogDescription>{editingUser?.email}</DialogDescription>
+          </DialogHeader>
+          {editingUser && (
+            <div className="space-y-4 py-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Фамилия</Label>
+                  <Input 
+                    value={editingUser.last_name} 
+                    onChange={(e) => setEditingUser({...editingUser, last_name: e.target.value})} 
+                    className="bg-slate-800 border-slate-700 mt-1"
+                  />
+                </div>
+                <div>
+                  <Label>Имя</Label>
+                  <Input 
+                    value={editingUser.first_name} 
+                    onChange={(e) => setEditingUser({...editingUser, first_name: e.target.value})} 
+                    className="bg-slate-800 border-slate-700 mt-1"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Отчество</Label>
+                <Input 
+                  value={editingUser.middle_name} 
+                  onChange={(e) => setEditingUser({...editingUser, middle_name: e.target.value})} 
+                  className="bg-slate-800 border-slate-700 mt-1"
+                />
+              </div>
+              <div>
+                <Label>Роль</Label>
+                <Select value={editingUser.role} onValueChange={(v) => setEditingUser({...editingUser, role: v})}>
+                  <SelectTrigger className="bg-slate-800 border-slate-700 mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user">Пользователь</SelectItem>
+                    <SelectItem value="admin">Администратор</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Статус доступа</Label>
+                <Select 
+                  value={editingUser.approved ? 'approved' : 'pending'} 
+                  onValueChange={(v) => setEditingUser({...editingUser, approved: v === 'approved'})}
+                >
+                  <SelectTrigger className="bg-slate-800 border-slate-700 mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="approved">Доступ открыт</SelectItem>
+                    <SelectItem value="pending">Доступ закрыт</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditModal(false)}>Отмена</Button>
+            <Button onClick={handleSaveEdit} disabled={saving} className="bg-purple-600">
+              {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Сохранить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Модальное окно удаления */}
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent className="bg-slate-900 border-red-900/50">
+          <DialogHeader>
+            <DialogTitle className="text-red-400">Удалить пользователя?</DialogTitle>
+            <DialogDescription>
+              <strong>{getFullName(userToDelete || {})}</strong><br/>
+              {userToDelete?.email}<br/><br/>
+              Это действие нельзя отменить.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteModal(false)}>Отмена</Button>
+            <Button onClick={handleDelete} disabled={deleting} className="bg-red-600 hover:bg-red-700">
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trash2 className="h-4 w-4 mr-2" />}
+              Удалить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
