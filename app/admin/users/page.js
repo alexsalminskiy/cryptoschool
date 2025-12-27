@@ -118,7 +118,7 @@ export default function UsersManagement() {
 
   const getFullName = (u) => {
     const parts = [u.last_name, u.first_name, u.middle_name].filter(Boolean)
-    return parts.length > 0 ? parts.join(' ') : '—'
+    return parts.length > 0 ? parts.join(' ') : 'Имя не указано'
   }
 
   return (
