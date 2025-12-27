@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
@@ -13,10 +14,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
-import { ArrowLeft, Save, Upload, Trash2, Loader2 } from 'lucide-react'
+import { ArrowLeft, Save, Upload, Trash2, Loader2, Image } from 'lucide-react'
 import { translations, categories } from '@/lib/i18n'
 import { toast } from 'sonner'
-import ArticleEditor from '@/components/ArticleEditor'
 
 export default function EditArticle() {
   const params = useParams()
@@ -28,22 +28,18 @@ export default function EditArticle() {
   const [coverImage, setCoverImage] = useState('')
   const [content, setContent] = useState('')
   const [status, setStatus] = useState('draft')
-  const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const language = 'ru'
+  const [uploading, setUploading] = useState(false)
+  const [language] = useState('ru')
   const t = translations[language]
 
   useEffect(() => {
-    if (params.id) {
-      fetchArticle()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchArticle()
   }, [params.id])
 
   const fetchArticle = async () => {
     try {
-      // Используем API для получения статьи по ID
       const response = await fetch(`/api/articles/by-id/${params.id}`)
       const data = await response.json()
 
@@ -66,7 +62,7 @@ export default function EditArticle() {
     }
   }
 
-  const handleImageUpload = useCallback(async (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
 
@@ -90,14 +86,13 @@ export default function EditArticle() {
       }
     } catch (error) {
       console.error('Upload error:', error)
-      toast.error('Ошибка загрузки: ' + error.message)
+      toast.error('Ошибка загрузки')
     } finally {
       setUploading(false)
     }
-  }, [])
+  }
 
-  const handleSave = useCallback(async () => {
-    // Валидация
+  const handleSave = async () => {
     if (!title.trim()) {
       toast.error('Введите заголовок статьи')
       return
@@ -108,10 +103,6 @@ export default function EditArticle() {
     }
     if (!category) {
       toast.error('Выберите категорию')
-      return
-    }
-    if (!content.trim()) {
-      toast.error('Введите содержание статьи')
       return
     }
 
@@ -127,42 +118,29 @@ export default function EditArticle() {
         status
       }
 
-      console.log('Updating article via API:', updateData)
-
-      // Используем API endpoint
       const response = await fetch('/api/articles', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updateData),
       })
 
       const result = await response.json()
-      console.log('API response:', result)
 
       if (!response.ok || result.error) {
-        const errorMsg = result.error || 'Неизвестная ошибка'
-        console.error('API error:', errorMsg)
-        if (errorMsg.includes('duplicate') || errorMsg.includes('23505')) {
-          toast.error('Статья с таким URL уже существует')
-        } else {
-          toast.error('Ошибка сохранения: ' + errorMsg)
-        }
-        return
+        throw new Error(result.error || 'Ошибка сохранения')
       }
 
       toast.success('Статья сохранена!')
       router.push('/admin/articles')
     } catch (error) {
       console.error('Save error:', error)
-      toast.error('Ошибка сети: ' + (error.message || 'Неизвестная ошибка'))
+      toast.error('Ошибка: ' + error.message)
     } finally {
       setSaving(false)
     }
-  }, [title, slug, category, coverImage, content, status, params.id, router])
+  }
 
-  const handleDelete = useCallback(async () => {
+  const handleDelete = async () => {
     if (!confirm('Вы уверены что хотите удалить эту статью?')) return
 
     setDeleting(true)
@@ -185,53 +163,76 @@ export default function EditArticle() {
     } finally {
       setDeleting(false)
     }
-  }, [params.id, router])
+  }
+
+  // Вставка изображения в текст
+  const handleInsertImage = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+
+      const data = await response.json()
+      
+      if (data.url) {
+        const imgName = file.name.replace(/\.[^/.]+$/, '')
+        setContent(prev => prev + `\n\n![${imgName}](${data.url})\n\n`)
+        toast.success('Изображение добавлено')
+      }
+    } catch (error) {
+      toast.error('Ошибка загрузки')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-purple-500 mx-auto mb-4" />
-          <p className="text-purple-400">Загрузка статьи...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
       </div>
     )
   }
 
   return (
-    <div>
+    <div className="space-y-6">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             onClick={() => router.push('/admin/articles')}
-            className="text-purple-400 hover:text-purple-300"
+            className="text-slate-400 hover:text-white"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 mr-2" />
             Назад
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-purple-300">{t.editArticle}</h1>
-          </div>
+          <h1 className="text-2xl font-bold text-purple-300">Редактирование статьи</h1>
         </div>
         <div className="flex gap-2">
           <Button
+            variant="destructive"
             onClick={handleDelete}
             disabled={deleting}
-            variant="outline"
-            className="border-red-600 text-red-400 hover:bg-red-900/30"
           >
-            {deleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
-            {t.delete}
+            {deleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trash2 className="h-4 w-4 mr-2" />}
+            Удалить
           </Button>
           <Button
             onClick={handleSave}
             disabled={saving}
             className="bg-purple-600 hover:bg-purple-700"
           >
-            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            {saving ? 'Сохранение...' : t.save}
+            {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+            Сохранить
           </Button>
         </div>
       </div>
@@ -239,120 +240,136 @@ export default function EditArticle() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Title & Slug */}
-          <Card className="border-purple-900/50 bg-slate-900/50 p-6">
+          <Card className="p-6 border-purple-900/50 bg-slate-900/50">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="title" className="text-purple-300">{t.title} *</Label>
+                <Label>Заголовок</Label>
                 <Input
-                  id="title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Введите заголовок статьи"
-                  className="bg-slate-800 border-slate-700 mt-2 text-white"
+                  className="bg-slate-800 border-slate-700"
                 />
               </div>
+              
               <div>
-                <Label htmlFor="slug" className="text-purple-300">{t.slug} *</Label>
+                <Label>URL (slug)</Label>
                 <Input
-                  id="slug"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
-                  placeholder="url-statii"
-                  className="bg-slate-800 border-slate-700 mt-2 text-white"
+                  placeholder="url-statyi"
+                  className="bg-slate-800 border-slate-700"
                 />
-                <p className="text-xs text-slate-500 mt-1">
-                  URL: /articles/{slug || 'url-statii'}
-                </p>
               </div>
             </div>
           </Card>
 
-          {/* Content Editor */}
-          <Card className="border-purple-900/50 bg-slate-900/50 p-6">
-            <Label className="text-purple-300 mb-4 block">{t.content} *</Label>
-            <ArticleEditor
-              value={content}
-              onChange={setContent}
-            />
+          <Card className="p-6 border-purple-900/50 bg-slate-900/50">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label>Содержание статьи (Markdown)</Label>
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleInsertImage}
+                    className="hidden"
+                  />
+                  <Button type="button" variant="outline" size="sm" disabled={uploading} asChild>
+                    <span>
+                      <Image className="h-4 w-4 mr-2" />
+                      {uploading ? 'Загрузка...' : 'Добавить фото'}
+                    </span>
+                  </Button>
+                </label>
+              </div>
+              <Textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Введите текст статьи в формате Markdown..."
+                className="min-h-[400px] bg-slate-800 border-slate-700 font-mono"
+              />
+              <p className="text-xs text-slate-500">
+                Поддерживается Markdown: **жирный**, *курсив*, # Заголовок, - список, ![alt](url) для изображений
+              </p>
+            </div>
           </Card>
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Category */}
-          <Card className="border-purple-900/50 bg-slate-900/50 p-6">
-            <Label className="text-purple-300 mb-4 block">{t.category} *</Label>
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="bg-slate-800 border-slate-700">
-                <SelectValue placeholder="Выберите категорию" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {t[cat] || cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Card>
-
-          {/* Cover Image */}
-          <Card className="border-purple-900/50 bg-slate-900/50 p-6">
-            <Label className="text-purple-300 mb-4 block">{t.coverImage}</Label>
-            {coverImage ? (
-              <div className="space-y-4">
-                <img
-                  src={coverImage}
-                  alt="Cover"
-                  className="w-full h-48 object-cover rounded-lg"
-                />
-                <Button
-                  variant="outline"
-                  onClick={() => setCoverImage('')}
-                  className="w-full border-red-600 text-red-400 hover:bg-red-900/30"
-                >
-                  Удалить обложку
-                </Button>
-              </div>
-            ) : (
+          <Card className="p-6 border-purple-900/50 bg-slate-900/50">
+            <div className="space-y-4">
               <div>
-                <input
-                  type="file"
-                  id="cover-upload"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-                <Button
-                  variant="outline"
-                  onClick={() => document.getElementById('cover-upload')?.click()}
-                  disabled={uploading}
-                  className="w-full border-purple-600 text-purple-300 hover:bg-purple-900/30"
-                >
-                  {uploading ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Upload className="mr-2 h-4 w-4" />
-                  )}
-                  {uploading ? 'Загрузка...' : t.uploadImage}
-                </Button>
+                <Label>Категория</Label>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger className="bg-slate-800 border-slate-700">
+                    <SelectValue placeholder="Выберите категорию" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {t[cat] || cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            )}
+
+              <div>
+                <Label>Статус</Label>
+                <Select value={status} onValueChange={setStatus}>
+                  <SelectTrigger className="bg-slate-800 border-slate-700">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="draft">Черновик</SelectItem>
+                    <SelectItem value="published">Опубликовано</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </Card>
 
-          {/* Status */}
-          <Card className="border-purple-900/50 bg-slate-900/50 p-6">
-            <Label className="text-purple-300 mb-4 block">{t.status}</Label>
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="bg-slate-800 border-slate-700">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="draft">{t.draft}</SelectItem>
-                <SelectItem value="published">{t.published}</SelectItem>
-              </SelectContent>
-            </Select>
+          <Card className="p-6 border-purple-900/50 bg-slate-900/50">
+            <div className="space-y-4">
+              <Label>Обложка статьи</Label>
+              {coverImage ? (
+                <div className="relative">
+                  <img
+                    src={coverImage}
+                    alt="Cover"
+                    className="w-full h-40 object-cover rounded-lg"
+                  />
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-2 right-2"
+                    onClick={() => setCoverImage('')}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center h-40 border-2 border-dashed border-slate-700 rounded-lg cursor-pointer hover:border-purple-500 transition-colors">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    disabled={uploading}
+                  />
+                  {uploading ? (
+                    <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+                  ) : (
+                    <>
+                      <Upload className="h-8 w-8 text-slate-500 mb-2" />
+                      <span className="text-sm text-slate-500">Загрузить обложку</span>
+                    </>
+                  )}
+                </label>
+              )}
+            </div>
           </Card>
         </div>
       </div>
