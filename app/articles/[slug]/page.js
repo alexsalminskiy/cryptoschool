@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { ArrowLeft, Clock, Eye, Tag, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react'
+import { ArrowLeft, Clock, Tag, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react'
 import { translations } from '@/lib/i18n'
 
 // Компонент для FAQ секции
