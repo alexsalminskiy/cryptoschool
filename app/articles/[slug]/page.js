@@ -333,16 +333,24 @@ export default function ArticlePage() {
 
       {/* Article Content */}
       <div className="container mx-auto px-4 py-8 md:py-12">
-        <article className="max-w-4xl mx-auto">
-          {/* Article Body */}
-          <div 
-            className="prose prose-lg dark:prose-invert prose-purple max-w-none"
-            dangerouslySetInnerHTML={{ __html: parseMarkdown(contentWithoutFAQ) }}
-          />
+        <article className="max-w-3xl mx-auto">
+          {/* Карточка с контентом для удобного чтения */}
+          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 md:p-10 shadow-sm border border-slate-200 dark:border-slate-800">
+            {/* Article Body */}
+            <div 
+              className="article-content text-slate-700 dark:text-slate-300"
+              style={{
+                fontSize: '1.1rem',
+                lineHeight: '1.9',
+                letterSpacing: '0.01em'
+              }}
+              dangerouslySetInnerHTML={{ __html: parseMarkdown(contentWithoutFAQ) }}
+            />
+          </div>
 
           {/* FAQ Section */}
           {faqs.length > 0 && (
-            <div className="mt-12">
+            <div className="mt-12 bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 md:p-10 border border-slate-200 dark:border-slate-800">
               <h2 className="text-2xl font-bold mb-6 text-purple-700 dark:text-purple-300 border-b border-purple-500/20 pb-3">
                 {lt.faq}
               </h2>
@@ -352,7 +360,7 @@ export default function ArticlePage() {
                 ))}
               </div>
             </div>
-          )}
+          )}}
 
           {/* Back Button */}
           <div className="mt-12 pt-8 border-t border-purple-500/20">
