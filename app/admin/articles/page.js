@@ -24,7 +24,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Plus, Edit, Trash2, Eye } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
 import { translations } from '@/lib/i18n'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
