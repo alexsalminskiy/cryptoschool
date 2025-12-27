@@ -124,54 +124,56 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-20">
+    <div className="container mx-auto px-4 py-6 sm:py-20 min-h-[calc(100vh-4rem)]">
       <div className="mx-auto max-w-md">
         <Card className="border-purple-900/50 bg-card/50 backdrop-blur">
-          <CardHeader>
-            <CardTitle className="text-2xl text-purple-500 dark:text-purple-300">{t.signUpTitle}</CardTitle>
-            <CardDescription className="text-muted-foreground">
+          <CardHeader className="space-y-1 px-4 sm:px-6 pt-6">
+            <CardTitle className="text-xl sm:text-2xl text-purple-500 dark:text-purple-300">{t.signUpTitle}</CardTitle>
+            <CardDescription className="text-muted-foreground text-sm">
               Создайте аккаунт для доступа к материалам
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Фамилия *</Label>
-                <Input
-                  id="lastName"
-                  type="text"
-                  placeholder="Иванов"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  required
-                  className="bg-background border-border"
-                />
+            <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="lastName" className="text-sm">Фамилия *</Label>
+                  <Input
+                    id="lastName"
+                    type="text"
+                    placeholder="Иванов"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required
+                    className="bg-background border-border h-11"
+                  />
+                </div>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="firstName" className="text-sm">Имя *</Label>
+                  <Input
+                    id="firstName"
+                    type="text"
+                    placeholder="Иван"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required
+                    className="bg-background border-border h-11"
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="firstName">Имя *</Label>
-                <Input
-                  id="firstName"
-                  type="text"
-                  placeholder="Иван"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  required
-                  className="bg-background border-border"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="middleName">Отчество</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="middleName" className="text-sm">Отчество</Label>
                 <Input
                   id="middleName"
                   type="text"
                   placeholder="Иванович"
                   value={middleName}
                   onChange={(e) => setMiddleName(e.target.value)}
-                  className="bg-background border-border"
+                  className="bg-background border-border h-11"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">{t.email} *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="email" className="text-sm">{t.email} *</Label>
                 <Input
                   id="email"
                   type="email"
@@ -179,11 +181,11 @@ export default function SignUpPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-background border-border"
+                  className="bg-background border-border h-11"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">{t.password} *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="password" className="text-sm">{t.password} *</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -193,19 +195,19 @@ export default function SignUpPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     minLength={6}
-                    className="bg-background border-border pr-10"
+                    className="bg-background border-border pr-10 h-11"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Подтвердите пароль *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="confirmPassword" className="text-sm">Подтвердите пароль *</Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -215,16 +217,16 @@ export default function SignUpPage() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                     minLength={6}
-                    className={`bg-background border-border pr-10 ${
+                    className={`bg-background border-border pr-10 h-11 ${
                       confirmPassword && password !== confirmPassword ? 'border-red-500' : ''
                     }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
                   >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
                 {confirmPassword && password !== confirmPassword && (
@@ -232,10 +234,10 @@ export default function SignUpPage() {
                 )}
               </div>
             </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
+            <CardFooter className="flex flex-col space-y-3 sm:space-y-4 px-4 sm:px-6 pb-6">
               <Button
                 type="submit"
-                className="w-full bg-purple-600 hover:bg-purple-700"
+                className="w-full bg-purple-600 hover:bg-purple-700 h-11 text-base"
                 disabled={loading || (confirmPassword && password !== confirmPassword)}
               >
                 {loading ? (
@@ -249,7 +251,7 @@ export default function SignUpPage() {
               </p>
               <div className="text-center text-sm text-muted-foreground">
                 {t.hasAccount}{' '}
-                <Link href="/sign-in" className="text-purple-500 hover:text-purple-400">
+                <Link href="/sign-in" className="text-purple-500 hover:text-purple-400 font-medium">
                   {t.signIn}
                 </Link>
               </div>
