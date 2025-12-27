@@ -260,6 +260,7 @@ export default function ArticleEditor({ value, onChange }) {
   const [showTableModal, setShowTableModal] = useState(false)
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [showHeadingMenu, setShowHeadingMenu] = useState(false)
+  const [showSizeMenu, setShowSizeMenu] = useState(false)
   const textareaRef = useRef(null)
   const fileInputRef = useRef(null)
 
