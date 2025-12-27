@@ -150,18 +150,20 @@ export default function UsersManagement() {
 
     setSaving(true)
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
+      const response = await fetch('/api/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingUser.id,
           first_name: editingUser.first_name,
           last_name: editingUser.last_name,
           middle_name: editingUser.middle_name || null,
           role: editingUser.role,
           approved: editingUser.approved
         })
-        .eq('id', editingUser.id)
+      })
 
-      if (error) throw error
+      if (!response.ok) throw new Error('Ошибка сохранения')
 
       toast.success('Сохранено!')
       setShowEditModal(false)
