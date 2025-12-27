@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { supabase, getUserProfile } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [signingOut, setSigningOut] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -45,6 +46,14 @@ export const AuthProvider = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth event:', event)
+        
+        if (event === 'SIGNED_OUT') {
+          setUser(null)
+          setProfile(null)
+          setLoading(false)
+          return
+        }
+        
         if (session?.user) {
           setUser(session.user)
           const { data: profileData } = await getUserProfile(session.user.id)
@@ -63,17 +72,59 @@ export const AuthProvider = ({ children }) => {
     }
   }, [])
 
+  // Улучшенная функция выхода
+  const signOut = useCallback(async () => {
+    if (signingOut) return // Предотвращаем двойной вызов
+    
+    setSigningOut(true)
+    console.log('Signing out...')
+    
+    try {
+      // Сначала очищаем локальное состояние
+      setUser(null)
+      setProfile(null)
+      
+      // Затем выходим из Supabase
+      const { error } = await supabase.auth.signOut()
+      
+      if (error) {
+        console.error('Sign out error:', error)
+        throw error
+      }
+      
+      console.log('Sign out successful')
+      
+      // Очищаем localStorage на всякий случай
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('supabase.auth.token')
+        // Удаляем все ключи Supabase
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('sb-')) {
+            localStorage.removeItem(key)
+          }
+        })
+      }
+      
+      // Перенаправляем на главную
+      router.push('/')
+      router.refresh()
+      
+    } catch (error) {
+      console.error('Error signing out:', error)
+      // Всё равно перенаправляем
+      router.push('/')
+    } finally {
+      setSigningOut(false)
+    }
+  }, [signingOut, router])
+
   const value = {
     user,
     profile,
     loading,
+    signingOut,
     isAdmin: profile?.role === 'admin',
-    signOut: async () => {
-      await supabase.auth.signOut()
-      setUser(null)
-      setProfile(null)
-      router.push('/')
-    }
+    signOut
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
