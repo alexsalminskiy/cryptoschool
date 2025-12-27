@@ -338,11 +338,12 @@ export default function ArticlePage() {
           <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 md:p-10 shadow-sm border border-slate-200 dark:border-slate-800">
             {/* Article Body */}
             <div 
-              className="article-content text-slate-700 dark:text-slate-300"
+              className="article-content font-serif text-slate-700 dark:text-slate-300"
               style={{
-                fontSize: '1.1rem',
-                lineHeight: '1.9',
-                letterSpacing: '0.01em'
+                fontSize: '1.15rem',
+                lineHeight: '2',
+                letterSpacing: '0.02em',
+                fontWeight: '400'
               }}
               dangerouslySetInnerHTML={{ __html: parseMarkdown(contentWithoutFAQ) }}
             />
@@ -351,10 +352,10 @@ export default function ArticlePage() {
           {/* FAQ Section */}
           {faqs.length > 0 && (
             <div className="mt-12 bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 md:p-10 border border-slate-200 dark:border-slate-800">
-              <h2 className="text-2xl font-bold mb-6 text-purple-700 dark:text-purple-300 border-b border-purple-500/20 pb-3">
+              <h2 className="text-2xl font-bold mb-6 text-purple-700 dark:text-purple-300 border-b border-purple-500/20 pb-3 font-sans">
                 {lt.faq}
               </h2>
-              <div className="space-y-3">
+              <div className="space-y-3 font-serif">
                 {faqs.map((faq, index) => (
                   <FAQItem key={index} question={faq.question} answer={faq.answer} />
                 ))}
