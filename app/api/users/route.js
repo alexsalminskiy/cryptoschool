@@ -27,19 +27,21 @@ export async function PUT(request) {
     const body = await request.json()
     const { id, ...updates } = body
     
+    console.log('Updating user:', id, updates)
+    
     const { data, error } = await supabase
       .from('profiles')
       .update(updates)
       .eq('id', id)
       .select()
-      .single()
 
     if (error) {
       console.error('Supabase error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json(data)
+    console.log('Update result:', data)
+    return NextResponse.json(data?.[0] || { success: true })
   } catch (error) {
     console.error('API error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
