@@ -51,12 +51,13 @@ const languages = [
 ]
 
 export default function AdminLayout({ children }) {
-  const { isAdmin, loading, user, signOut, signingOut } = useAuth()
+  const { isAdmin, loading, user, profile, signOut, signingOut } = useAuth()
   const { language, setLanguage } = useLanguage()
   const { resolvedTheme, setTheme } = useTheme()
   const router = useRouter()
   const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
+  const [checkingAccess, setCheckingAccess] = useState(true)
   const t = translations[language] || translations.ru
 
   useEffect(() => {
@@ -64,10 +65,25 @@ export default function AdminLayout({ children }) {
   }, [])
 
   useEffect(() => {
-    if (!loading && !isAdmin) {
+    // Даём 3 секунды на загрузку, потом всё равно проверяем
+    const timeout = setTimeout(() => {
+      setCheckingAccess(false)
+    }, 3000)
+
+    if (!loading) {
+      setCheckingAccess(false)
+      clearTimeout(timeout)
+    }
+
+    return () => clearTimeout(timeout)
+  }, [loading])
+
+  useEffect(() => {
+    if (!checkingAccess && !loading && !isAdmin) {
+      console.log('Not admin, redirecting...', { user: !!user, profile, isAdmin })
       router.push('/')
     }
-  }, [isAdmin, loading, router])
+  }, [isAdmin, loading, checkingAccess, router, user, profile])
 
   const handleSignOut = async (e) => {
     e.preventDefault()
