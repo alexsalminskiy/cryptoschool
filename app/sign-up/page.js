@@ -68,10 +68,17 @@ export default function SignUpPage() {
       
       if (authError) {
         if (authError.message.includes('already registered')) {
-          toast.error('Этот email уже зарегистрирован')
+          toast.error('Этот email уже зарегистрирован. Попробуйте войти или обратитесь к администратору.')
         } else {
           toast.error(authError.message)
         }
+        return
+      }
+
+      // Проверяем, создан ли реально новый пользователь
+      // (Supabase может вернуть данные без ошибки, но с identities: [])
+      if (!authData.user || (authData.user.identities && authData.user.identities.length === 0)) {
+        toast.error('Этот email уже зарегистрирован. Попробуйте войти или обратитесь к администратору.')
         return
       }
 
@@ -103,7 +110,9 @@ export default function SignUpPage() {
       }
 
       toast.success('Регистрация успешна!')
-      router.push('/pending-approval')
+      
+      // Используем window.location для надёжного редиректа
+      window.location.href = '/pending-approval'
       
     } catch (error) {
       toast.error('Ошибка регистрации')
