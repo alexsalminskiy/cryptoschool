@@ -4,43 +4,56 @@ import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
+import { useLanguage } from '@/contexts/LanguageContext'
 import { Button } from '@/components/ui/button'
-import { LayoutDashboard, FileText, Users, ArrowLeft, LogOut, Loader2 } from 'lucide-react'
+import { LayoutDashboard, FileText, Users, ArrowLeft, LogOut, Loader2, Sun, Moon } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { useTheme } from 'next-themes'
 import { translations } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
+const languages = [
+  { code: 'ru', name: 'Русский', flag: '🇷🇺' },
+  { code: 'en', name: 'English', flag: '🇬🇧' },
+  { code: 'kk', name: 'Қазақша', flag: '🇰🇿' }
+]
+
 export default function AdminLayout({ children }) {
   const { isAdmin, loading, user, profile, signOut, signingOut } = useAuth()
+  const { language, setLanguage } = useLanguage()
+  const { theme, setTheme, resolvedTheme } = useTheme()
   const router = useRouter()
   const pathname = usePathname()
-  const language = 'ru'
-  const t = translations[language]
+  const [mounted, setMounted] = useState(false)
+  const t = translations[language] || translations.ru
+  const currentLang = languages.find(l => l.code === language) || languages[0]
 
   useEffect(() => {
-    console.log('[AdminLayout] useEffect triggered', { isAdmin, loading, user: !!user, profile })
-    if (!loading && !isAdmin) {
-      console.log('[AdminLayout] Not admin, redirecting to home')
-      router.push('/')
-    } else if (!loading && isAdmin) {
-      console.log('[AdminLayout] User is admin! ✅')
-    }
-  }, [isAdmin, loading, router, user, profile])
+    setMounted(true)
+  }, [])
 
-  // Обработчик выхода
+  useEffect(() => {
+    if (!loading && !isAdmin) {
+      router.push('/')
+    }
+  }, [isAdmin, loading, router])
+
   const handleSignOut = async (e) => {
     e.preventDefault()
     e.stopPropagation()
-    
     if (signingOut) return
-    
-    console.log('[AdminLayout] Signing out...')
     await signOut()
   }
 
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
-        <div className="text-purple-400 text-xl">{t.loading}</div>
+        <Loader2 className="h-8 w-8 animate-spin text-purple-400" />
       </div>
     )
   }
@@ -50,44 +63,29 @@ export default function AdminLayout({ children }) {
   }
 
   const menuItems = [
-    {
-      href: '/admin',
-      label: t.dashboard,
-      icon: LayoutDashboard,
-      exact: true
-    },
-    {
-      href: '/admin/articles',
-      label: t.articlesManagement,
-      icon: FileText
-    },
-    {
-      href: '/admin/users',
-      label: t.usersManagement,
-      icon: Users
-    }
+    { href: '/admin', label: t.dashboard, icon: LayoutDashboard, exact: true },
+    { href: '/admin/articles', label: t.articlesManagement, icon: FileText },
+    { href: '/admin/users', label: t.usersManagement, icon: Users }
   ]
 
   const isActive = (href, exact = false) => {
-    if (exact) {
-      return pathname === href
-    }
+    if (exact) return pathname === href
     return pathname.startsWith(href)
   }
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
       {/* Sidebar */}
-      <aside className="w-72 border-r border-purple-900/30 bg-slate-950/60 backdrop-blur-xl shadow-2xl">
+      <aside className="w-72 border-r border-purple-900/30 bg-slate-950/60 backdrop-blur-xl">
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="p-6 border-b border-purple-900/30">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent mb-2">
-              {t.admin}
-            </h2>
-            <p className="text-sm text-slate-400">
-              {user?.email}
-            </p>
+            <Link href="/admin">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent mb-2">
+                {t.admin}
+              </h2>
+            </Link>
+            <p className="text-sm text-slate-400 truncate">{user?.email}</p>
           </div>
 
           {/* Navigation */}
@@ -102,25 +100,13 @@ export default function AdminLayout({ children }) {
                   href={item.href}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
-                    "group relative overflow-hidden",
                     active 
-                      ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50" 
-                      : "text-slate-300 hover:bg-purple-900/30 hover:text-purple-200"
+                      ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg" 
+                      : "text-slate-300 hover:bg-purple-900/30"
                   )}
                 >
-                  {active && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-100" />
-                  )}
-                  <Icon className={cn(
-                    "h-5 w-5 relative z-10 transition-transform duration-200",
-                    active ? "scale-110" : "group-hover:scale-110"
-                  )} />
-                  <span className="relative z-10 font-medium">
-                    {item.label}
-                  </span>
-                  {active && (
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-l-full" />
-                  )}
+                  <Icon className="h-5 w-5" />
+                  <span className="font-medium">{item.label}</span>
                 </Link>
               )
             })}
@@ -128,6 +114,39 @@ export default function AdminLayout({ children }) {
 
           {/* Footer */}
           <div className="p-4 border-t border-purple-900/30 space-y-2">
+            {/* Language & Theme */}
+            <div className="flex gap-2 mb-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="flex-1 justify-start text-slate-300 hover:bg-purple-900/20">
+                    <span className="text-lg mr-2">{currentLang.flag}</span>
+                    <span>{currentLang.name}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {languages.map((lang) => (
+                    <DropdownMenuItem 
+                      key={lang.code}
+                      onClick={() => setLanguage(lang.code)}
+                      className={language === lang.code ? 'bg-purple-500/20' : ''}
+                    >
+                      <span className="text-lg mr-2">{lang.flag}</span>
+                      {lang.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+                className="text-slate-300 hover:bg-purple-900/20"
+              >
+                {mounted && (resolvedTheme === 'dark' ? <Sun className="h-5 w-5 text-yellow-400" /> : <Moon className="h-5 w-5" />)}
+              </Button>
+            </div>
+            
             <Button
               variant="ghost"
               asChild
@@ -142,18 +161,12 @@ export default function AdminLayout({ children }) {
               variant="ghost"
               onClick={handleSignOut}
               disabled={signingOut}
-              className="w-full justify-start text-red-300 hover:text-red-200 hover:bg-red-900/20 disabled:opacity-50"
+              className="w-full justify-start text-red-300 hover:text-red-200 hover:bg-red-900/20"
             >
               {signingOut ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Выход...
-                </>
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t.loading}</>
               ) : (
-                <>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  {t.signOut}
-                </>
+                <><LogOut className="mr-2 h-4 w-4" /> {t.signOut}</>
               )}
             </Button>
           </div>
