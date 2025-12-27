@@ -60,12 +60,13 @@ export default function UsersManagement() {
   const fetchUsers = async () => {
     setLoading(true)
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
+      const response = await fetch('/api/users')
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Ошибка загрузки')
+      }
+      
       setUsers(data || [])
     } catch (error) {
       console.error('Error:', error)
