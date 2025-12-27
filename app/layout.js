@@ -1,20 +1,19 @@
-'use client'
-
-import { usePathname } from 'next/navigation'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 import { Toaster } from '@/components/ui/sonner'
-import Header from '@/components/Header'
+import HeaderWrapper from '@/components/HeaderWrapper'
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'] })
 
-export default function RootLayout({ children }) {
-  const pathname = usePathname()
-  const isAdminPage = pathname?.startsWith('/admin')
+export const metadata = {
+  title: 'Crypto Academy | Learn Cryptocurrencies & Blockchain',
+  description: 'Modern educational platform for cryptocurrencies, DeFi, NFT and blockchain technologies',
+}
 
+export default function RootLayout({ children }) {
   return (
     <html lang="ru" suppressHydrationWarning>
       <body className={inter.className}>
@@ -27,7 +26,7 @@ export default function RootLayout({ children }) {
           <LanguageProvider>
             <AuthProvider>
               <div className="min-h-screen bg-background transition-colors duration-300">
-                {!isAdminPage && <Header />}
+                <HeaderWrapper />
                 <main>{children}</main>
                 <Toaster />
               </div>
