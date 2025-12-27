@@ -204,13 +204,6 @@ export default function ArticlePage() {
                 <Tag className="h-4 w-4 text-purple-500" />
                 {t[article.category] || article.category}
               </div>
-              <div className="flex items-center gap-2">
-                <Eye className="h-4 w-4 text-purple-500" />
-                {article.views} просмотров
-              </div>
-              <div className="text-muted-foreground">
-                {formatDate(article.created_at)}
-              </div>
             </div>
           </div>
         </div>
