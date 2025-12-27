@@ -335,14 +335,13 @@ export default function ArticlePage() {
       <div className="container mx-auto px-4 py-8 md:py-12">
         <article className="max-w-3xl mx-auto">
           {/* Карточка с контентом для удобного чтения */}
-          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 md:p-10 shadow-sm border border-slate-200 dark:border-slate-800">
+          <div className="bg-white dark:bg-slate-900/80 rounded-2xl p-6 md:p-10 shadow-sm border border-slate-100 dark:border-slate-800">
             {/* Article Body */}
             <div 
-              className="article-content font-article text-slate-700 dark:text-slate-300"
+              className="article-content font-article text-slate-800 dark:text-slate-200"
               style={{
-                fontSize: '1.05rem',
-                lineHeight: '1.8',
-                letterSpacing: '0.01em',
+                fontSize: '17px',
+                lineHeight: '1.7',
                 fontWeight: '400'
               }}
               dangerouslySetInnerHTML={{ __html: parseMarkdown(contentWithoutFAQ) }}
@@ -351,8 +350,8 @@ export default function ArticlePage() {
 
           {/* FAQ Section */}
           {faqs.length > 0 && (
-            <div className="mt-12 bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 md:p-10 border border-slate-200 dark:border-slate-800">
-              <h2 className="text-2xl font-bold mb-6 text-purple-700 dark:text-purple-300 border-b border-purple-500/20 pb-3 font-sans">
+            <div className="mt-12 bg-white dark:bg-slate-900/80 rounded-2xl p-6 md:p-10 border border-slate-100 dark:border-slate-800">
+              <h2 className="text-xl font-bold mb-6 text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-700 pb-3">
                 {lt.faq}
               </h2>
               <div className="space-y-3 font-article">
