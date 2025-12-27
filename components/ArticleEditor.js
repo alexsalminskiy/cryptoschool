@@ -356,14 +356,61 @@ export default function ArticleEditor({ value, onChange }) {
     <div className="space-y-4">
       {/* Панель инструментов */}
       <div className="flex flex-wrap items-center gap-0.5 p-2 bg-muted/50 rounded-lg border border-border">
-        <ToolbarButton onClick={handleH1} icon={Heading1} title="Заголовок 1" />
-        <ToolbarButton onClick={handleH2} icon={Heading2} title="Заголовок 2" />
-        <ToolbarButton onClick={handleH3} icon={Heading3} title="Заголовок 3" />
+        {/* Заголовки с выпадающим меню */}
+        <div className="relative">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowHeadingMenu(!showHeadingMenu)}
+            className="h-9 px-3 text-muted-foreground hover:text-foreground hover:bg-muted gap-1"
+            title="Заголовки"
+          >
+            <Type className="h-4 w-4" />
+            <span className="text-xs">Заголовок</span>
+          </Button>
+          {showHeadingMenu && (
+            <div className="absolute top-full left-0 mt-1 z-50 p-2 bg-card border border-border rounded-lg shadow-xl min-w-[160px]">
+              <button onClick={handleH1} className="w-full text-left px-3 py-2 text-xl font-bold hover:bg-muted rounded">
+                H1 - Большой
+              </button>
+              <button onClick={handleH2} className="w-full text-left px-3 py-2 text-lg font-bold hover:bg-muted rounded">
+                H2 - Средний
+              </button>
+              <button onClick={handleH3} className="w-full text-left px-3 py-2 text-base font-semibold hover:bg-muted rounded">
+                H3 - Маленький
+              </button>
+              <button onClick={handleH4} className="w-full text-left px-3 py-2 text-sm font-semibold hover:bg-muted rounded">
+                H4 - Мини
+              </button>
+            </div>
+          )}
+        </div>
         
         <Divider />
         
         <ToolbarButton onClick={handleBold} icon={Bold} title="Жирный" />
         <ToolbarButton onClick={handleItalic} icon={Italic} title="Курсив" />
+        
+        {/* Цвет текста */}
+        <div className="relative">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowColorPicker(!showColorPicker)}
+            className="h-9 w-9 p-0 text-muted-foreground hover:text-foreground hover:bg-muted"
+            title="Цвет текста"
+          >
+            <Palette className="h-4 w-4" />
+          </Button>
+          <ColorModal 
+            isOpen={showColorPicker} 
+            onClose={() => setShowColorPicker(false)}
+            onSelect={handleColorSelect}
+          />
+        </div>
+        
         <ToolbarButton onClick={handleQuote} icon={Quote} title="Цитата" />
         <ToolbarButton onClick={handleCode} icon={Code} title="Код" />
         
