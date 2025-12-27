@@ -63,11 +63,14 @@ export default function ArticlesPage() {
       <div className="mb-12">
         <h1 className="text-4xl font-bold mb-4">
           <span className="bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
-            {t.allArticles}
+            {selectedCategory === 'all' ? t.allArticles : t[selectedCategory] || selectedCategory}
           </span>
         </h1>
         <p className="text-slate-400 text-lg">
-          Изучайте криптовалюты, DeFi, NFT и блокчейн технологии
+          {selectedCategory === 'all' 
+            ? 'Изучайте криптовалюты, DeFi, NFT и блокчейн технологии'
+            : `Статьи по теме: ${t[selectedCategory] || selectedCategory}`
+          }
         </p>
       </div>
 
