@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,19 +32,33 @@ export default function NewArticle() {
   const language = 'ru'
   const t = translations[language]
 
-  // Генерация slug из заголовка
-  const handleTitleChange = useCallback((value) => {
+  // Генерация slug из заголовка (только латиница)
+  const handleTitleChange = (value) => {
     setTitle(value)
+    // Транслитерация для slug
+    const translitMap = {
+      'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo',
+      'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
+      'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+      'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch', 'ъ': '',
+      'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
+    }
+    
     const generatedSlug = value
       .toLowerCase()
-      .replace(/[^a-z0-9а-яё\s]+/gi, '')
+      .split('')
+      .map(char => translitMap[char] || char)
+      .join('')
+      .replace(/[^a-z0-9\s-]+/g, '')
       .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
       .replace(/^-|-$/g, '')
+    
     setSlug(generatedSlug)
-  }, [])
+  }
 
   // Загрузка обложки
-  const handleImageUpload = useCallback(async (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
 
@@ -67,12 +81,11 @@ export default function NewArticle() {
         throw new Error(data.error || 'Upload failed')
       }
     } catch (error) {
-      console.error('Upload error:', error)
       toast.error('Ошибка загрузки: ' + error.message)
     } finally {
       setUploading(false)
     }
-  }, [])
+  }
 
   // Сохранение статьи
   const handleSave = async (publishNow = false) => {
@@ -95,6 +108,7 @@ export default function NewArticle() {
     }
 
     setSaving(true)
+    toast.info('Сохранение статьи...')
     
     try {
       const articleData = {
@@ -109,25 +123,38 @@ export default function NewArticle() {
 
       console.log('Saving article:', articleData)
 
-      const { data, error } = await supabase
+      // Используем Promise с таймаутом
+      const savePromise = supabase
         .from('articles')
         .insert([articleData])
         .select()
         .single()
 
-      console.log('Result:', { data, error })
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Таймаут - попробуйте ещё раз')), 15000)
+      )
+
+      const { data, error } = await Promise.race([savePromise, timeoutPromise])
 
       if (error) {
         console.error('Supabase error:', error)
-        throw new Error(error.message || 'Ошибка сохранения')
+        if (error.code === '23505' || error.message?.includes('duplicate')) {
+          toast.error('Статья с таким URL уже существует')
+        } else {
+          toast.error('Ошибка: ' + error.message)
+        }
+        return
       }
 
+      console.log('Article saved:', data)
       toast.success(publishNow ? 'Статья опубликована!' : 'Черновик сохранён')
+      
+      // Редирект
       router.push('/admin/articles')
       
     } catch (error) {
       console.error('Save error:', error)
-      toast.error('Ошибка: ' + (error.message || 'Неизвестная ошибка'))
+      toast.error('Ошибка: ' + (error.message || 'Попробуйте ещё раз'))
     } finally {
       setSaving(false)
     }
@@ -146,9 +173,7 @@ export default function NewArticle() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Назад
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-purple-300">{t.createArticle}</h1>
-          </div>
+          <h1 className="text-3xl font-bold text-purple-300">{t.createArticle}</h1>
         </div>
         <div className="flex gap-2">
           <Button
@@ -165,7 +190,7 @@ export default function NewArticle() {
             disabled={saving}
             className="bg-purple-600 hover:bg-purple-700"
           >
-            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {saving ? 'Сохранение...' : t.publish}
           </Button>
         </div>
@@ -206,10 +231,7 @@ export default function NewArticle() {
           {/* Content Editor */}
           <Card className="border-purple-900/50 bg-slate-900/50 p-6">
             <Label className="text-purple-300 mb-4 block">{t.content} *</Label>
-            <ArticleEditor
-              value={content}
-              onChange={setContent}
-            />
+            <ArticleEditor value={content} onChange={setContent} />
           </Card>
         </div>
 
@@ -237,11 +259,7 @@ export default function NewArticle() {
             <Label className="text-purple-300 mb-4 block">{t.coverImage}</Label>
             {coverImage ? (
               <div className="space-y-4">
-                <img
-                  src={coverImage}
-                  alt="Cover"
-                  className="w-full h-48 object-cover rounded-lg"
-                />
+                <img src={coverImage} alt="Cover" className="w-full h-48 object-cover rounded-lg" />
                 <Button
                   variant="outline"
                   onClick={() => setCoverImage('')}
@@ -265,18 +283,11 @@ export default function NewArticle() {
                   disabled={uploading}
                   className="w-full border-purple-600 text-purple-300 hover:bg-purple-900/30"
                 >
-                  {uploading ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Upload className="mr-2 h-4 w-4" />
-                  )}
+                  {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
                   {uploading ? 'Загрузка...' : t.uploadImage}
                 </Button>
               </div>
             )}
-            <p className="text-xs text-slate-500 mt-2">
-              Рекомендуемый размер: 1200x630px
-            </p>
           </Card>
 
           {/* Status */}
