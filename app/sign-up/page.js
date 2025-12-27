@@ -75,18 +75,31 @@ export default function SignUpPage() {
         return
       }
 
-      // Создаём профиль
+      // Создаём профиль или обновляем если уже создан триггером
       if (authData.user) {
-        await supabase.from('profiles').upsert({
-          id: authData.user.id,
-          email: email.trim(),
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-          middle_name: middleName.trim() || null,
-          role: 'user',
-          approved: false,
-          created_at: new Date().toISOString()
-        }, { onConflict: 'id' })
+        // Используем update вместо upsert, потому что триггер уже мог создать профиль
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
+            middle_name: middleName.trim() || null,
+          })
+          .eq('id', authData.user.id)
+        
+        // Если update не нашёл запись (нет триггера), тогда insert
+        if (updateError) {
+          await supabase.from('profiles').insert({
+            id: authData.user.id,
+            email: email.trim(),
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
+            middle_name: middleName.trim() || null,
+            role: 'user',
+            approved: false,
+            created_at: new Date().toISOString()
+          })
+        }
       }
 
       toast.success('Регистрация успешна!')
