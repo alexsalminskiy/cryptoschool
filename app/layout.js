@@ -21,7 +21,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="ru" suppressHydrationWarning>
-      <body className={`${inter.variable} ${merriweather.variable} font-sans`}>
+      <body className={`${inter.variable} ${openSans.variable} font-sans`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
