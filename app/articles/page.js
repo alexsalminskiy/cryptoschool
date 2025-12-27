@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
@@ -13,7 +12,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Eye, Search } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
 import { translations, categories } from '@/lib/i18n'
 import { format } from 'date-fns'
 
@@ -27,34 +25,48 @@ export default function ArticlesPage() {
 
   useEffect(() => {
     fetchArticles()
-  }, [selectedCategory, searchTerm])
+  }, [selectedCategory])
+
+  // Поиск с задержкой
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchArticles()
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
 
   const fetchArticles = async () => {
     try {
       setLoading(true)
-      let query = supabase
-        .from('articles')
-        .select('*')
-        .eq('status', 'published')
-        .order('created_at', { ascending: false })
-
+      
+      // Используем API вместо прямого вызова Supabase
+      let url = '/api/articles?'
       if (selectedCategory !== 'all') {
-        query = query.eq('category', selectedCategory)
+        url += `category=${selectedCategory}&`
       }
-
       if (searchTerm) {
-        query = query.or(`title.ilike.%${searchTerm}%,content_md.ilike.%${searchTerm}%`)
+        url += `search=${encodeURIComponent(searchTerm)}&`
       }
-
-      const { data, error } = await query
-
-      if (error) throw error
-      setArticles(data || [])
+      
+      const response = await fetch(url)
+      const data = await response.json()
+      
+      if (Array.isArray(data)) {
+        setArticles(data)
+      } else {
+        setArticles([])
+      }
     } catch (error) {
       console.error('Error fetching articles:', error)
+      setArticles([])
     } finally {
       setLoading(false)
     }
+  }
+
+  // Быстрая смена категории
+  const handleCategoryChange = (value) => {
+    setSelectedCategory(value)
   }
 
   return (
