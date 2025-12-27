@@ -92,16 +92,28 @@ export default function AdminLayout({ children }) {
     await signOut()
   }
 
-  if (loading) {
+  if (loading || checkingAccess) {
     return (
       <div className="flex h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-400" />
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-400 mx-auto mb-4" />
+          <p className="text-slate-400 text-sm">Проверка доступа...</p>
+        </div>
       </div>
     )
   }
 
   if (!isAdmin) {
-    return null
+    return (
+      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
+        <div className="text-center">
+          <p className="text-red-400 mb-4">Доступ запрещён</p>
+          <Button onClick={() => router.push('/')} variant="outline">
+            На главную
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   const menuItems = [
