@@ -2,6 +2,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { LanguageProvider } from '@/contexts/LanguageContext'
 import { Toaster } from '@/components/ui/sonner'
 import Header from '@/components/Header'
 
@@ -22,13 +23,15 @@ export default function RootLayout({ children }) {
           enableSystem={false}
           disableTransitionOnChange={false}
         >
-          <AuthProvider>
-            <div className="min-h-screen bg-background transition-colors duration-300">
-              <Header />
-              <main>{children}</main>
-              <Toaster />
-            </div>
-          </AuthProvider>
+          <LanguageProvider>
+            <AuthProvider>
+              <div className="min-h-screen bg-background transition-colors duration-300">
+                <Header />
+                <main>{children}</main>
+                <Toaster />
+              </div>
+            </AuthProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>
