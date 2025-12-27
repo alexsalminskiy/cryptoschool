@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { Moon, Sun, Menu, X, LogOut, Settings, Loader2, Globe } from 'lucide-react'
+import { Moon, Sun, Menu, X, LogOut, Settings, Loader2 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import {
@@ -16,10 +16,37 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { translations } from '@/lib/i18n'
 
+// Флаги как SVG изображения
+const flags = {
+  ru: (
+    <svg className="w-6 h-4 rounded-sm" viewBox="0 0 640 480">
+      <rect fill="#fff" width="640" height="160"/>
+      <rect fill="#0039a6" y="160" width="640" height="160"/>
+      <rect fill="#d52b1e" y="320" width="640" height="160"/>
+    </svg>
+  ),
+  en: (
+    <svg className="w-6 h-4 rounded-sm" viewBox="0 0 640 480">
+      <path fill="#012169" d="M0 0h640v480H0z"/>
+      <path fill="#FFF" d="m75 0 244 181L562 0h78v62L400 241l240 178v61h-80L320 301 81 480H0v-60l239-178L0 64V0h75z"/>
+      <path fill="#C8102E" d="m424 281 216 159v40L369 281h55zm-184 20 6 35L54 480H0l240-179zM640 0v3L391 191l2-44L590 0h50zM0 0l239 176h-60L0 42V0z"/>
+      <path fill="#FFF" d="M241 0v480h160V0H241zM0 160v160h640V160H0z"/>
+      <path fill="#C8102E" d="M0 193v96h640v-96H0zM273 0v480h96V0h-96z"/>
+    </svg>
+  ),
+  kk: (
+    <svg className="w-6 h-4 rounded-sm" viewBox="0 0 640 480">
+      <path fill="#00afca" d="M0 0h640v480H0z"/>
+      <path fill="#fec50c" d="M320 120a120 120 0 1 0 0 240 120 120 0 0 0 0-240zm0 200a80 80 0 1 1 0-160 80 80 0 0 1 0 160z"/>
+      <path fill="#fec50c" d="M320 80l10 30h32l-26 19 10 31-26-19-26 19 10-31-26-19h32z"/>
+    </svg>
+  )
+}
+
 const languages = [
-  { code: 'ru', name: 'Русский', flag: '🇷🇺' },
-  { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'kk', name: 'Қазақша', flag: '🇰🇿' }
+  { code: 'ru', name: 'Русский' },
+  { code: 'en', name: 'English' },
+  { code: 'kk', name: 'Қазақша' }
 ]
 
 export default function Header() {
@@ -36,7 +63,6 @@ export default function Header() {
   }, [])
 
   const t = translations[language] || translations.ru
-  const currentLang = languages.find(l => l.code === language) || languages[0]
 
   const handleSignOut = async (e) => {
     e.preventDefault()
@@ -88,7 +114,7 @@ export default function Header() {
                   size="icon"
                   className="h-10 w-10 rounded-full hover:bg-purple-500/20"
                 >
-                  <span className="text-xl">{currentLang.flag}</span>
+                  {flags[language]}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44">
@@ -98,7 +124,7 @@ export default function Header() {
                     onClick={() => setLanguage(lang.code)}
                     className={`cursor-pointer ${language === lang.code ? 'bg-purple-500/20' : ''}`}
                   >
-                    <span className="text-xl mr-3">{lang.flag}</span>
+                    <span className="mr-3">{flags[lang.code]}</span>
                     <span>{lang.name}</span>
                     {language === lang.code && <span className="ml-auto">✓</span>}
                   </DropdownMenuItem>
