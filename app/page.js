@@ -76,7 +76,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 md:py-32">
+      <section className="relative overflow-hidden py-12 sm:py-20 md:py-32">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-pink-900/20 dark:from-purple-900/20 dark:to-pink-900/20" />
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
@@ -84,22 +84,22 @@ export default function HomePage() {
         
         <div className="container relative z-10 mx-auto px-4">
           <div className="mx-auto max-w-4xl text-center">
-            <h1 className="mb-6 text-5xl font-bold tracking-tight md:text-7xl">
+            <h1 className="mb-4 sm:mb-6 text-3xl sm:text-5xl md:text-7xl font-bold tracking-tight">
               <span className="neon-text bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 bg-clip-text text-transparent">
                 {t.heroTitle}
               </span>
             </h1>
-            <p className="mb-4 text-xl text-purple-700 dark:text-purple-200 md:text-2xl font-medium">
+            <p className="mb-3 sm:mb-4 text-lg sm:text-xl md:text-2xl text-purple-700 dark:text-purple-200 font-medium">
               {t.heroSubtitle}
             </p>
-            <p className="mb-8 text-lg text-muted-foreground">
+            <p className="mb-6 sm:mb-8 text-base sm:text-lg text-muted-foreground px-4">
               {t.heroDescription}
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0">
               <Button
                 size="lg"
                 asChild
-                className="h-14 px-8 text-lg rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all"
+                className="h-12 sm:h-14 px-6 sm:px-8 text-base sm:text-lg rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all"
               >
                 <Link href="/sign-up">
                   {t.getStarted}
@@ -112,34 +112,34 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-muted/30">
+      <section className="py-12 sm:py-20 bg-muted/30">
         <div className="container mx-auto px-4">
-          <div className="grid gap-8 md:grid-cols-3">
+          <div className="grid gap-4 sm:gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
             <Card className="border-purple-500/20 dark:border-purple-900/50 bg-card/50 backdrop-blur hover:border-purple-500/40 transition-colors">
-              <CardHeader>
-                <BookOpen className="h-10 w-10 text-purple-500 dark:text-purple-400 mb-2" />
-                <CardTitle className="text-purple-700 dark:text-purple-300">{lt.feature1Title}</CardTitle>
-                <CardDescription className="text-muted-foreground">
+              <CardHeader className="p-4 sm:p-6">
+                <BookOpen className="h-8 w-8 sm:h-10 sm:w-10 text-purple-500 dark:text-purple-400 mb-2" />
+                <CardTitle className="text-purple-700 dark:text-purple-300 text-lg sm:text-xl">{lt.feature1Title}</CardTitle>
+                <CardDescription className="text-muted-foreground text-sm sm:text-base">
                   {lt.feature1Desc}
                 </CardDescription>
               </CardHeader>
             </Card>
 
             <Card className="border-purple-500/20 dark:border-purple-900/50 bg-card/50 backdrop-blur hover:border-purple-500/40 transition-colors">
-              <CardHeader>
-                <TrendingUp className="h-10 w-10 text-purple-500 dark:text-purple-400 mb-2" />
-                <CardTitle className="text-purple-700 dark:text-purple-300">{lt.feature2Title}</CardTitle>
-                <CardDescription className="text-muted-foreground">
+              <CardHeader className="p-4 sm:p-6">
+                <TrendingUp className="h-8 w-8 sm:h-10 sm:w-10 text-purple-500 dark:text-purple-400 mb-2" />
+                <CardTitle className="text-purple-700 dark:text-purple-300 text-lg sm:text-xl">{lt.feature2Title}</CardTitle>
+                <CardDescription className="text-muted-foreground text-sm sm:text-base">
                   {lt.feature2Desc}
                 </CardDescription>
               </CardHeader>
             </Card>
 
-            <Card className="border-purple-500/20 dark:border-purple-900/50 bg-card/50 backdrop-blur hover:border-purple-500/40 transition-colors">
-              <CardHeader>
-                <Shield className="h-10 w-10 text-purple-500 dark:text-purple-400 mb-2" />
-                <CardTitle className="text-purple-700 dark:text-purple-300">{lt.feature3Title}</CardTitle>
-                <CardDescription className="text-muted-foreground">
+            <Card className="border-purple-500/20 dark:border-purple-900/50 bg-card/50 backdrop-blur hover:border-purple-500/40 transition-colors sm:col-span-2 md:col-span-1">
+              <CardHeader className="p-4 sm:p-6">
+                <Shield className="h-8 w-8 sm:h-10 sm:w-10 text-purple-500 dark:text-purple-400 mb-2" />
+                <CardTitle className="text-purple-700 dark:text-purple-300 text-lg sm:text-xl">{lt.feature3Title}</CardTitle>
+                <CardDescription className="text-muted-foreground text-sm sm:text-base">
                   {lt.feature3Desc}
                 </CardDescription>
               </CardHeader>
@@ -149,24 +149,24 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20">
+      <section className="py-12 sm:py-20">
         <div className="container mx-auto px-4">
-          <Card className="border-purple-500/20 dark:border-purple-900/50 bg-card/50 backdrop-blur p-8 md:p-12 text-center">
-            <div className="mx-auto max-w-2xl space-y-6">
-              <div className="mx-auto w-16 h-16 rounded-full bg-purple-500/20 dark:bg-purple-600/20 flex items-center justify-center">
-                <BookOpen className="h-8 w-8 text-purple-500 dark:text-purple-400" />
+          <Card className="border-purple-500/20 dark:border-purple-900/50 bg-card/50 backdrop-blur p-6 sm:p-8 md:p-12 text-center">
+            <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
+              <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-purple-500/20 dark:bg-purple-600/20 flex items-center justify-center">
+                <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500 dark:text-purple-400" />
               </div>
-              <h3 className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+              <h3 className="text-xl sm:text-2xl font-bold text-purple-700 dark:text-purple-300">
                 {lt.ctaTitle}
               </h3>
-              <p className="text-muted-foreground text-lg">
+              <p className="text-muted-foreground text-sm sm:text-lg px-4">
                 {lt.ctaDesc}
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center pt-2 sm:pt-4 px-4 sm:px-0">
                 <Button
                   size="lg"
                   asChild
-                  className="h-12 px-8 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all"
+                  className="h-11 sm:h-12 px-6 sm:px-8 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all"
                 >
                   <Link href="/sign-up">
                     {lt.register}
@@ -176,14 +176,14 @@ export default function HomePage() {
                   size="lg"
                   variant="outline"
                   asChild
-                  className="h-12 px-8 rounded-full border-purple-500/50 text-purple-600 dark:text-purple-300 hover:bg-purple-500/10 hover:border-purple-500 transition-all"
+                  className="h-11 sm:h-12 px-6 sm:px-8 rounded-full border-purple-500/50 text-purple-600 dark:text-purple-300 hover:bg-purple-500/10 hover:border-purple-500 transition-all"
                 >
                   <Link href="/sign-in">
                     {lt.hasAccount}
                   </Link>
                 </Button>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground px-4">
                 {lt.approvalNote}
               </p>
             </div>
