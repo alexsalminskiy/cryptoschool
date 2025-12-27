@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { FileText, Eye, TrendingUp, Clock, Users } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
 import { translations } from '@/lib/i18n'
 
 export default function AdminDashboard() {
@@ -25,36 +24,12 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      // Fetch articles stats
-      const { data: articles, error: articlesError } = await supabase
-        .from('articles')
-        .select('*')
-
-      if (articlesError) throw articlesError
-
-      const totalArticles = articles.length
-      const publishedArticles = articles.filter(a => a.status === 'published').length
-      const draftArticles = articles.filter(a => a.status === 'draft').length
-      const totalViews = articles.reduce((sum, a) => sum + (a.views || 0), 0)
-
-      // Fetch users stats
-      const { data: users, error: usersError } = await supabase
-        .from('profiles')
-        .select('*')
-
-      if (usersError) throw usersError
-
-      const totalUsers = users.length
-      const pendingUsers = users.filter(u => !u.approved && u.role !== 'admin').length
-
-      setStats({
-        totalArticles,
-        publishedArticles,
-        draftArticles,
-        totalViews,
-        totalUsers,
-        pendingUsers
-      })
+      const response = await fetch('/api/stats')
+      const data = await response.json()
+      
+      if (response.ok && !data.error) {
+        setStats(data)
+      }
     } catch (error) {
       console.error('Error fetching stats:', error)
     } finally {
