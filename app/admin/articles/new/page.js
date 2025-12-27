@@ -75,7 +75,7 @@ export default function NewArticle() {
   }, [])
 
   // Сохранение статьи
-  const handleSave = useCallback(async (publishNow = false) => {
+  const handleSave = async (publishNow = false) => {
     // Валидация
     if (!title.trim()) {
       toast.error('Введите заголовок статьи')
@@ -95,6 +95,7 @@ export default function NewArticle() {
     }
 
     setSaving(true)
+    
     try {
       const articleData = {
         title: title.trim(),
@@ -114,26 +115,23 @@ export default function NewArticle() {
         .select()
         .single()
 
+      console.log('Result:', { data, error })
+
       if (error) {
         console.error('Supabase error:', error)
-        throw error
+        throw new Error(error.message || 'Ошибка сохранения')
       }
-
-      console.log('Article saved:', data)
 
       toast.success(publishNow ? 'Статья опубликована!' : 'Черновик сохранён')
       router.push('/admin/articles')
+      
     } catch (error) {
       console.error('Save error:', error)
-      if (error.message?.includes('duplicate') || error.code === '23505') {
-        toast.error('Статья с таким URL уже существует')
-      } else {
-        toast.error('Ошибка сохранения: ' + (error.message || 'Неизвестная ошибка'))
-      }
+      toast.error('Ошибка: ' + (error.message || 'Неизвестная ошибка'))
     } finally {
       setSaving(false)
     }
-  }, [title, slug, category, coverImage, content, status, router])
+  }
 
   return (
     <div>
