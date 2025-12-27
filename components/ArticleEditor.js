@@ -8,12 +8,45 @@ import { Card } from '@/components/ui/card'
 import { 
   Bold, Italic, Heading1, Heading2, Heading3, List, ListOrdered, 
   Link as LinkIcon, Image, Code, Eye, Edit3, Upload, Quote, Table, 
-  HelpCircle, Minus, Plus, Trash2, X
+  HelpCircle, Minus, Plus, Trash2, X, Palette, Type
 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
 import { toast } from 'sonner'
+
+// Цвета для текста
+const TEXT_COLORS = [
+  { name: 'Красный', color: '#ef4444', class: 'bg-red-500' },
+  { name: 'Оранжевый', color: '#f97316', class: 'bg-orange-500' },
+  { name: 'Жёлтый', color: '#eab308', class: 'bg-yellow-500' },
+  { name: 'Зелёный', color: '#22c55e', class: 'bg-green-500' },
+  { name: 'Голубой', color: '#06b6d4', class: 'bg-cyan-500' },
+  { name: 'Синий', color: '#3b82f6', class: 'bg-blue-500' },
+  { name: 'Фиолетовый', color: '#a855f7', class: 'bg-purple-500' },
+  { name: 'Розовый', color: '#ec4899', class: 'bg-pink-500' },
+]
+
+// Модальное окно для цвета
+function ColorModal({ isOpen, onClose, onSelect }) {
+  if (!isOpen) return null
+
+  return (
+    <div className="absolute top-full left-0 mt-1 z-50 p-3 bg-card border border-border rounded-lg shadow-xl">
+      <p className="text-xs text-muted-foreground mb-2">Выберите цвет:</p>
+      <div className="flex gap-2">
+        {TEXT_COLORS.map((c) => (
+          <button
+            key={c.color}
+            onClick={() => { onSelect(c.color); onClose(); }}
+            className={`w-6 h-6 rounded-full ${c.class} hover:scale-110 transition-transform`}
+            title={c.name}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
 
 // Модальное окно для FAQ
 function FAQModal({ isOpen, onClose, onInsert }) {
