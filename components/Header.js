@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { Moon, Sun, Menu, X, Globe, LogOut, Settings } from 'lucide-react'
+import { Moon, Sun, Menu, X, Globe, LogOut, Settings, Loader2 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,7 +20,7 @@ export default function Header() {
   const pathname = usePathname()
   const router = useRouter()
   const { theme, setTheme, resolvedTheme } = useTheme()
-  const { user, profile, isAdmin, signOut } = useAuth()
+  const { user, profile, isAdmin, signOut, signingOut } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [language, setLanguage] = useState('ru')
   const [mounted, setMounted] = useState(false)
@@ -32,9 +32,15 @@ export default function Header() {
 
   const t = translations[language]
 
-  const handleSignOut = async () => {
+  // Обработчик выхода - напрямую вызывает signOut
+  const handleSignOut = async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (signingOut) return // Уже выходим
+    
+    console.log('Header: handleSignOut called')
     await signOut()
-    router.push('/')
   }
 
   const toggleTheme = () => {
@@ -116,7 +122,7 @@ export default function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Theme Switcher - Improved */}
+            {/* Theme Switcher */}
             <Button
               variant="ghost"
               size="icon"
@@ -135,39 +141,53 @@ export default function Header() {
 
             {/* Auth Buttons */}
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+              <div className="flex items-center gap-2">
+                {/* Admin Panel Button - отдельная кнопка */}
+                {isAdmin && (
                   <Button 
-                    variant="outline" 
-                    className="h-10 px-4 rounded-full border-purple-500/50 hover:border-purple-400 hover:bg-purple-500/20 transition-all"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => router.push('/admin')}
+                    className="h-10 px-4 rounded-full border-purple-500/50 hover:border-purple-400 hover:bg-purple-500/20"
                   >
-                    <span className="max-w-[120px] truncate">
-                      {profile?.first_name || user.email?.split('@')[0]}
-                    </span>
+                    <Settings className="h-4 w-4 mr-2" />
+                    Админ
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  {isAdmin && (
-                    <>
-                      <DropdownMenuItem 
-                        onClick={() => router.push('/admin')}
-                        className="cursor-pointer"
-                      >
-                        <Settings className="mr-2 h-4 w-4" />
-                        {t.admin}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                    </>
-                  )}
-                  <DropdownMenuItem 
-                    onClick={handleSignOut}
-                    className="cursor-pointer text-red-400 focus:text-red-400"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    {t.signOut}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                )}
+                
+                {/* User Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="h-10 px-4 rounded-full border-purple-500/50 hover:border-purple-400 hover:bg-purple-500/20 transition-all"
+                    >
+                      <span className="max-w-[100px] truncate">
+                        {profile?.first_name || user.email?.split('@')[0]}
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem 
+                      onClick={handleSignOut}
+                      disabled={signingOut}
+                      className="cursor-pointer text-red-400 focus:text-red-400 focus:bg-red-500/10"
+                    >
+                      {signingOut ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Выход...
+                        </>
+                      ) : (
+                        <>
+                          <LogOut className="mr-2 h-4 w-4" />
+                          {t.signOut}
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             ) : (
               <div className="flex gap-2">
                 <Button
