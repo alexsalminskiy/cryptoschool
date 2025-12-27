@@ -350,11 +350,11 @@ export default function ArticlePage() {
 
           {/* FAQ Section */}
           {faqs.length > 0 && (
-            <div className="mt-12 bg-amber-50/70 dark:bg-slate-900/90 rounded-2xl p-6 md:p-10 border border-amber-100 dark:border-slate-800">
-              <h2 className="text-xl font-bold mb-6 text-slate-900 dark:text-slate-100 border-b border-amber-200 dark:border-slate-700 pb-3">
+            <div className="mt-8 sm:mt-12 bg-amber-50/70 dark:bg-slate-900/90 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-10 border border-amber-100 dark:border-slate-800">
+              <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 text-slate-900 dark:text-slate-100 border-b border-amber-200 dark:border-slate-700 pb-3">
                 {lt.faq}
               </h2>
-              <div className="space-y-3 font-article">
+              <div className="space-y-2 sm:space-y-3 font-article">
                 {faqs.map((faq, index) => (
                   <FAQItem key={index} question={faq.question} answer={faq.answer} />
                 ))}
@@ -363,11 +363,11 @@ export default function ArticlePage() {
           )}
 
           {/* Back Button */}
-          <div className="mt-12 pt-8 border-t border-purple-500/20">
+          <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-purple-500/20">
             <Button
               variant="outline"
               asChild
-              className="border-purple-500/50 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10"
+              className="border-purple-500/50 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 h-11"
             >
               <Link href="/articles">
                 <ArrowLeft className="mr-2 h-4 w-4" />
