@@ -86,19 +86,19 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-20">
+    <div className="container mx-auto px-4 py-8 sm:py-20 min-h-[calc(100vh-4rem)]">
       <div className="mx-auto max-w-md">
         <Card className="border-purple-900/50 bg-card/50 backdrop-blur">
-          <CardHeader>
-            <CardTitle className="text-2xl text-purple-500 dark:text-purple-300">{t.signInTitle}</CardTitle>
-            <CardDescription className="text-muted-foreground">
+          <CardHeader className="space-y-1 px-4 sm:px-6 pt-6">
+            <CardTitle className="text-xl sm:text-2xl text-purple-500 dark:text-purple-300">{t.signInTitle}</CardTitle>
+            <CardDescription className="text-muted-foreground text-sm">
               Войдите в свой аккаунт
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 px-4 sm:px-6">
               <div className="space-y-2">
-                <Label htmlFor="email">{t.email}</Label>
+                <Label htmlFor="email" className="text-sm">{t.email}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -106,11 +106,11 @@ export default function SignInPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-background border-border"
+                  className="bg-background border-border h-11"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">{t.password}</Label>
+                <Label htmlFor="password" className="text-sm">{t.password}</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -119,22 +119,22 @@ export default function SignInPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="bg-background border-border pr-10"
+                    className="bg-background border-border pr-10 h-11"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
+            <CardFooter className="flex flex-col space-y-4 px-4 sm:px-6 pb-6">
               <Button
                 type="submit"
-                className="w-full bg-purple-600 hover:bg-purple-700"
+                className="w-full bg-purple-600 hover:bg-purple-700 h-11 text-base"
                 disabled={loading}
               >
                 {loading ? (
@@ -145,7 +145,7 @@ export default function SignInPage() {
               </Button>
               <div className="text-center text-sm text-muted-foreground">
                 {t.noAccount}{' '}
-                <Link href="/sign-up" className="text-purple-500 hover:text-purple-400">
+                <Link href="/sign-up" className="text-purple-500 hover:text-purple-400 font-medium">
                   {t.signUp}
                 </Link>
               </div>
