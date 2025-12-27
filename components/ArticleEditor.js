@@ -3,25 +3,223 @@
 import { useState, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { 
   Bold, Italic, Heading1, Heading2, Heading3, List, ListOrdered, 
   Link as LinkIcon, Image, Code, Eye, Edit3, Upload, Quote, Table, 
-  HelpCircle, Minus
+  HelpCircle, Minus, Plus, Trash2, X
 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
 import { toast } from 'sonner'
 
+// Модальное окно для FAQ
+function FAQModal({ isOpen, onClose, onInsert }) {
+  const [questions, setQuestions] = useState([{ q: '', a: '' }])
+
+  const addQuestion = () => {
+    setQuestions([...questions, { q: '', a: '' }])
+  }
+
+  const removeQuestion = (index) => {
+    if (questions.length > 1) {
+      setQuestions(questions.filter((_, i) => i !== index))
+    }
+  }
+
+  const updateQuestion = (index, field, value) => {
+    const updated = [...questions]
+    updated[index][field] = value
+    setQuestions(updated)
+  }
+
+  const handleInsert = () => {
+    // Фильтруем пустые вопросы
+    const validQuestions = questions.filter(q => q.q.trim() && q.a.trim())
+    if (validQuestions.length === 0) {
+      toast.error('Добавьте хотя бы один вопрос и ответ')
+      return
+    }
+
+    // Генерируем FAQ блок
+    let faqText = '\n[FAQ]\n'
+    validQuestions.forEach(item => {
+      faqText += `[Q]${item.q}[/Q]\n[A]${item.a}[/A]\n\n`
+    })
+    faqText += '[/FAQ]\n'
+
+    onInsert(faqText)
+    setQuestions([{ q: '', a: '' }])
+    onClose()
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <Card className="w-full max-w-2xl max-h-[80vh] overflow-auto m-4 p-6 bg-card border-purple-500/20">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold text-purple-500">Добавить FAQ</h3>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+
+        <div className="space-y-4">
+          {questions.map((item, index) => (
+            <div key={index} className="p-4 bg-muted/50 rounded-lg space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-purple-500">Вопрос {index + 1}</span>
+                {questions.length > 1 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => removeQuestion(index)}
+                    className="text-red-500 hover:text-red-400 h-8 w-8 p-0"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              <Input
+                placeholder="Введите вопрос..."
+                value={item.q}
+                onChange={(e) => updateQuestion(index, 'q', e.target.value)}
+                className="bg-background"
+              />
+              <Textarea
+                placeholder="Введите ответ..."
+                value={item.a}
+                onChange={(e) => updateQuestion(index, 'a', e.target.value)}
+                className="bg-background min-h-[80px]"
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <Button 
+            variant="outline" 
+            onClick={addQuestion}
+            className="flex-1 border-purple-500/50 text-purple-500"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Добавить вопрос
+          </Button>
+          <Button 
+            onClick={handleInsert}
+            className="flex-1 bg-purple-600 hover:bg-purple-700"
+          >
+            Вставить в статью
+          </Button>
+        </div>
+      </Card>
+    </div>
+  )
+}
+
+// Модальное окно для таблицы
+function TableModal({ isOpen, onClose, onInsert }) {
+  const [rows, setRows] = useState(3)
+  const [cols, setCols] = useState(3)
+
+  const handleInsert = () => {
+    let table = '\n'
+    // Заголовки
+    table += '| ' + Array(cols).fill('Заголовок').map((h, i) => `${h} ${i+1}`).join(' | ') + ' |\n'
+    // Разделитель
+    table += '| ' + Array(cols).fill('---').join(' | ') + ' |\n'
+    // Строки
+    for (let r = 0; r < rows - 1; r++) {
+      table += '| ' + Array(cols).fill('Данные').join(' | ') + ' |\n'
+    }
+    table += '\n'
+
+    onInsert(table)
+    onClose()
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <Card className="w-full max-w-sm m-4 p-6 bg-card border-purple-500/20">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold text-purple-500">Вставить таблицу</h3>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm text-muted-foreground">Столбцов: {cols}</label>
+            <input 
+              type="range" 
+              min="2" 
+              max="6" 
+              value={cols}
+              onChange={(e) => setCols(Number(e.target.value))}
+              className="w-full"
+            />
+          </div>
+          <div>
+            <label className="text-sm text-muted-foreground">Строк: {rows}</label>
+            <input 
+              type="range" 
+              min="2" 
+              max="10" 
+              value={rows}
+              onChange={(e) => setRows(Number(e.target.value))}
+              className="w-full"
+            />
+          </div>
+        </div>
+
+        <Button 
+          onClick={handleInsert}
+          className="w-full mt-6 bg-purple-600 hover:bg-purple-700"
+        >
+          Вставить таблицу {cols}×{rows}
+        </Button>
+      </Card>
+    </div>
+  )
+}
+
 export default function ArticleEditor({ value, onChange }) {
   const [previewMode, setPreviewMode] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [showFAQModal, setShowFAQModal] = useState(false)
+  const [showTableModal, setShowTableModal] = useState(false)
   const textareaRef = useRef(null)
   const fileInputRef = useRef(null)
 
   // Вставка текста в позицию курсора
-  const insertAtCursor = useCallback((before, after = '', placeholder = '') => {
+  const insertAtCursor = useCallback((text) => {
+    const textarea = textareaRef.current
+    if (!textarea) {
+      onChange((value || '') + text)
+      return
+    }
+
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const newText = value.substring(0, start) + text + value.substring(end)
+    
+    onChange(newText)
+    
+    setTimeout(() => {
+      textarea.focus()
+      const newPosition = start + text.length
+      textarea.setSelectionRange(newPosition, newPosition)
+    }, 0)
+  }, [value, onChange])
+
+  // Обёртка выделенного текста
+  const wrapSelection = useCallback((before, after = '', placeholder = '') => {
     const textarea = textareaRef.current
     if (!textarea) return
 
@@ -32,56 +230,28 @@ export default function ArticleEditor({ value, onChange }) {
     
     onChange(newText)
     
-    // Установка курсора после вставки
     setTimeout(() => {
       textarea.focus()
-      const newPosition = start + before.length + selectedText.length
+      const newPosition = start + before.length + selectedText.length + after.length
       textarea.setSelectionRange(newPosition, newPosition)
     }, 0)
   }, [value, onChange])
 
   // Обработчики форматирования
-  const handleBold = () => insertAtCursor('**', '**', 'жирный текст')
-  const handleItalic = () => insertAtCursor('*', '*', 'курсив')
-  const handleH1 = () => insertAtCursor('# ', '', 'Заголовок 1')
-  const handleH2 = () => insertAtCursor('## ', '', 'Заголовок 2')
-  const handleH3 = () => insertAtCursor('### ', '', 'Заголовок 3')
-  const handleList = () => insertAtCursor('- ', '', 'Элемент списка')
-  const handleOrderedList = () => insertAtCursor('1. ', '', 'Элемент списка')
-  const handleCode = () => insertAtCursor('`', '`', 'код')
-  const handleLink = () => insertAtCursor('[', '](https://)', 'текст ссылки')
-  const handleQuote = () => insertAtCursor('> ', '', 'Цитата')
+  const handleBold = () => wrapSelection('**', '**', 'жирный текст')
+  const handleItalic = () => wrapSelection('*', '*', 'курсив')
+  const handleH1 = () => insertAtCursor('\n# Заголовок\n')
+  const handleH2 = () => insertAtCursor('\n## Заголовок раздела\n')
+  const handleH3 = () => insertAtCursor('\n### Подзаголовок\n')
+  const handleList = () => insertAtCursor('\n- Пункт 1\n- Пункт 2\n- Пункт 3\n')
+  const handleOrderedList = () => insertAtCursor('\n1. Первый\n2. Второй\n3. Третий\n')
+  const handleCode = () => wrapSelection('`', '`', 'код')
+  const handleLink = () => wrapSelection('[', '](https://)', 'текст ссылки')
+  const handleQuote = () => insertAtCursor('\n> Цитата или важная информация\n')
   const handleDivider = () => insertAtCursor('\n---\n')
-  
-  // Вставка таблицы
-  const handleTable = () => {
-    const table = `
-| Столбец 1 | Столбец 2 | Столбец 3 |
-|-----------|-----------|----------|
-| Данные 1  | Данные 2  | Данные 3 |
-| Данные 4  | Данные 5  | Данные 6 |
-`
-    insertAtCursor(table)
-  }
-  
-  // Вставка FAQ блока
-  const handleFAQ = () => {
-    const faq = `
-[FAQ]
-[Q]Ваш вопрос здесь?[/Q]
-[A]Ваш ответ здесь.[/A]
 
-[Q]Второй вопрос?[/Q]
-[A]Второй ответ.[/A]
-[/FAQ]
-`
-    insertAtCursor(faq)
-  }
-
-  // Загрузка изображения в текст статьи
-  const handleImageClick = () => {
-    fileInputRef.current?.click()
-  }
+  // Загрузка изображения
+  const handleImageClick = () => fileInputRef.current?.click()
 
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0]
@@ -100,7 +270,6 @@ export default function ArticleEditor({ value, onChange }) {
       const data = await response.json()
       
       if (data.url) {
-        // Вставляем изображение в markdown
         const imgName = file.name.replace(/\.[^/.]+$/, '')
         insertAtCursor(`\n![${imgName}](${data.url})\n`)
         toast.success('Изображение добавлено!')
@@ -112,25 +281,18 @@ export default function ArticleEditor({ value, onChange }) {
       toast.error('Ошибка загрузки изображения')
     } finally {
       setUploading(false)
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
-      }
+      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
-  // Группа кнопок
-  const ToolbarButton = ({ onClick, icon: Icon, title, highlight, disabled }) => (
+  // Кнопка панели инструментов
+  const ToolbarButton = ({ onClick, icon: Icon, title, className = '' }) => (
     <Button
       type="button"
       variant="ghost"
       size="sm"
       onClick={onClick}
-      disabled={disabled}
-      className={`h-9 w-9 p-0 transition-colors ${
-        highlight 
-          ? 'text-purple-500 hover:text-purple-400 hover:bg-purple-500/20' 
-          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-      }`}
+      className={`h-9 w-9 p-0 text-muted-foreground hover:text-foreground hover:bg-muted ${className}`}
       title={title}
     >
       <Icon className="h-4 w-4" />
@@ -141,64 +303,61 @@ export default function ArticleEditor({ value, onChange }) {
 
   return (
     <div className="space-y-4">
-      {/* Toolbar */}
+      {/* Панель инструментов */}
       <div className="flex flex-wrap items-center gap-0.5 p-2 bg-muted/50 rounded-lg border border-border">
-        {/* Заголовки */}
         <ToolbarButton onClick={handleH1} icon={Heading1} title="Заголовок 1" />
         <ToolbarButton onClick={handleH2} icon={Heading2} title="Заголовок 2" />
         <ToolbarButton onClick={handleH3} icon={Heading3} title="Заголовок 3" />
         
         <Divider />
         
-        {/* Форматирование текста */}
-        <ToolbarButton onClick={handleBold} icon={Bold} title="Жирный (Ctrl+B)" />
-        <ToolbarButton onClick={handleItalic} icon={Italic} title="Курсив (Ctrl+I)" />
+        <ToolbarButton onClick={handleBold} icon={Bold} title="Жирный" />
+        <ToolbarButton onClick={handleItalic} icon={Italic} title="Курсив" />
         <ToolbarButton onClick={handleQuote} icon={Quote} title="Цитата" />
         <ToolbarButton onClick={handleCode} icon={Code} title="Код" />
         
         <Divider />
         
-        {/* Списки */}
-        <ToolbarButton onClick={handleList} icon={List} title="Маркированный список" />
+        <ToolbarButton onClick={handleList} icon={List} title="Список" />
         <ToolbarButton onClick={handleOrderedList} icon={ListOrdered} title="Нумерованный список" />
-        
-        <Divider />
-        
-        {/* Вставки */}
         <ToolbarButton onClick={handleLink} icon={LinkIcon} title="Ссылка" />
-        <ToolbarButton onClick={handleTable} icon={Table} title="Таблица" />
         <ToolbarButton onClick={handleDivider} icon={Minus} title="Разделитель" />
         
         <Divider />
         
-        {/* Специальные блоки */}
+        {/* Специальные кнопки */}
         <Button
           type="button"
           variant="ghost"
           size="sm"
           onClick={handleImageClick}
           disabled={uploading}
-          className="h-9 px-3 text-purple-500 hover:text-purple-400 hover:bg-purple-500/20 font-medium gap-1.5"
-          title="Вставить изображение"
+          className="h-9 px-3 text-purple-500 hover:text-purple-400 hover:bg-purple-500/20 gap-1.5"
         >
-          {uploading ? (
-            <Upload className="h-4 w-4 animate-spin" />
-          ) : (
-            <Image className="h-4 w-4" />
-          )}
-          <span className="text-xs">{uploading ? 'Загрузка...' : 'Фото'}</span>
+          {uploading ? <Upload className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
+          <span className="text-xs hidden sm:inline">{uploading ? 'Загрузка...' : 'Фото'}</span>
         </Button>
         
         <Button
           type="button"
           variant="ghost"
           size="sm"
-          onClick={handleFAQ}
-          className="h-9 px-3 text-amber-500 hover:text-amber-400 hover:bg-amber-500/20 font-medium gap-1.5"
-          title="Вставить FAQ блок"
+          onClick={() => setShowTableModal(true)}
+          className="h-9 px-3 text-blue-500 hover:text-blue-400 hover:bg-blue-500/20 gap-1.5"
+        >
+          <Table className="h-4 w-4" />
+          <span className="text-xs hidden sm:inline">Таблица</span>
+        </Button>
+        
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowFAQModal(true)}
+          className="h-9 px-3 text-amber-500 hover:text-amber-400 hover:bg-amber-500/20 gap-1.5"
         >
           <HelpCircle className="h-4 w-4" />
-          <span className="text-xs">FAQ</span>
+          <span className="text-xs hidden sm:inline">FAQ</span>
         </Button>
         
         <div className="flex-1" />
@@ -215,15 +374,11 @@ export default function ArticleEditor({ value, onChange }) {
               : 'text-muted-foreground hover:text-foreground hover:bg-muted'
           }`}
         >
-          {previewMode ? (
-            <><Edit3 className="h-4 w-4" /> Редактор</>
-          ) : (
-            <><Eye className="h-4 w-4" /> Превью</>
-          )}
+          {previewMode ? <><Edit3 className="h-4 w-4" /> Редактор</> : <><Eye className="h-4 w-4" /> Превью</>}
         </Button>
       </div>
 
-      {/* Hidden file input */}
+      {/* Скрытый input для файлов */}
       <input
         ref={fileInputRef}
         type="file"
@@ -232,14 +387,11 @@ export default function ArticleEditor({ value, onChange }) {
         className="hidden"
       />
 
-      {/* Editor / Preview */}
+      {/* Редактор / Превью */}
       {previewMode ? (
         <Card className="min-h-[500px] p-6 bg-card border-border overflow-auto">
           <div className="prose prose-lg dark:prose-invert prose-purple max-w-none">
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeRaw]}
-            >
+            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
               {value || '*Начните писать статью...*'}
             </ReactMarkdown>
           </div>
@@ -249,35 +401,28 @@ export default function ArticleEditor({ value, onChange }) {
           ref={textareaRef}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={`Начните писать статью...
+          placeholder="Начните писать статью...
 
-## Используйте заголовки для структуры
+Используйте кнопки выше для форматирования.
 
-Пишите текст здесь. Используйте кнопки панели инструментов для форматирования.
-
-### Подзаголовок
-
-- Список пунктов
-- Ещё один пункт
-
-> Цитата выделяется отступом
-
-Нажмите кнопку "Фото" чтобы вставить изображение.
-Нажмите "FAQ" чтобы добавить раздел вопросов и ответов.`}
+📷 Фото - загрузить изображение
+📊 Таблица - вставить таблицу  
+❓ FAQ - добавить вопросы и ответы"
           className="min-h-[500px] bg-card border-border text-foreground font-mono text-sm resize-none focus:ring-purple-500 focus:border-purple-500 leading-relaxed"
         />
       )}
 
-      {/* Help text */}
-      <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-        <span>💡 **жирный**</span>
-        <span>*курсив*</span>
-        <span>## заголовок</span>
-        <span>- список</span>
-        <span>[ссылка](url)</span>
-        <span>![картинка](url)</span>
-        <span>&gt; цитата</span>
-      </div>
+      {/* Модальные окна */}
+      <FAQModal 
+        isOpen={showFAQModal} 
+        onClose={() => setShowFAQModal(false)} 
+        onInsert={insertAtCursor}
+      />
+      <TableModal
+        isOpen={showTableModal}
+        onClose={() => setShowTableModal(false)}
+        onInsert={insertAtCursor}
+      />
     </div>
   )
 }
