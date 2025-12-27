@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,26 +13,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
-import { ArrowLeft, Save, Upload } from 'lucide-react'
+import { ArrowLeft, Save, Upload, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { translations, categories } from '@/lib/i18n'
 import { toast } from 'sonner'
-import dynamic from 'next/dynamic'
-import '@uiw/react-md-editor/markdown-editor.css'
-import '@uiw/react-markdown-preview/markdown.css'
-
-// Ленивая загрузка редактора для ускорения
-const MDEditor = dynamic(
-  () => import('@uiw/react-md-editor').then((mod) => mod.default),
-  { 
-    ssr: false,
-    loading: () => (
-      <div className="flex items-center justify-center h-[500px] bg-slate-800 rounded-lg">
-        <div className="text-purple-400">Загрузка редактора...</div>
-      </div>
-    )
-  }
-)
+import ArticleEditor from '@/components/ArticleEditor'
 
 export default function NewArticle() {
   const router = useRouter()
@@ -40,24 +25,25 @@ export default function NewArticle() {
   const [slug, setSlug] = useState('')
   const [category, setCategory] = useState('')
   const [coverImage, setCoverImage] = useState('')
-  const [content, setContent] = useState('# Заголовок статьи\n\nВведите содержание статьи здесь...')
+  const [content, setContent] = useState('')
   const [status, setStatus] = useState('draft')
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const language = 'ru'
   const t = translations[language]
 
-  // Мемоизированная функция генерации slug
+  // Генерация slug из заголовка
   const handleTitleChange = useCallback((value) => {
     setTitle(value)
     const generatedSlug = value
       .toLowerCase()
-      .replace(/[^a-z0-9а-я]+/g, '-')
+      .replace(/[^a-z0-9а-яё\s]+/gi, '')
+      .replace(/\s+/g, '-')
       .replace(/^-|-$/g, '')
     setSlug(generatedSlug)
   }, [])
 
-  // Оптимизированная загрузка изображения
+  // Загрузка обложки
   const handleImageUpload = useCallback(async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -76,56 +62,78 @@ export default function NewArticle() {
       
       if (data.url) {
         setCoverImage(data.url)
-        toast.success('Изображение загружено')
+        toast.success('Обложка загружена')
       } else {
         throw new Error(data.error || 'Upload failed')
       }
     } catch (error) {
       console.error('Upload error:', error)
-      toast.error('Ошибка загрузки изображения')
+      toast.error('Ошибка загрузки: ' + error.message)
     } finally {
       setUploading(false)
     }
   }, [])
 
-  // Оптимизированное сохранение
+  // Сохранение статьи
   const handleSave = useCallback(async (publishNow = false) => {
-    if (!title || !slug || !category || !content) {
-      toast.error('Заполните все обязательные поля')
+    // Валидация
+    if (!title.trim()) {
+      toast.error('Введите заголовок статьи')
+      return
+    }
+    if (!slug.trim()) {
+      toast.error('Введите URL статьи')
+      return
+    }
+    if (!category) {
+      toast.error('Выберите категорию')
+      return
+    }
+    if (!content.trim()) {
+      toast.error('Введите содержание статьи')
       return
     }
 
     setSaving(true)
     try {
+      const articleData = {
+        title: title.trim(),
+        slug: slug.trim(),
+        category,
+        cover_image_url: coverImage || null,
+        content_md: content,
+        status: publishNow ? 'published' : status,
+        views: 0
+      }
+
+      console.log('Saving article:', articleData)
+
       const { data, error } = await supabase
         .from('articles')
-        .insert([{
-          title,
-          slug,
-          category,
-          cover_image_url: coverImage,
-          content_md: content,
-          status: publishNow ? 'published' : status,
-          views: 0
-        }])
+        .insert([articleData])
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
 
-      toast.success(publishNow ? t.articleCreated : 'Черновик сохранён')
+      console.log('Article saved:', data)
+
+      toast.success(publishNow ? 'Статья опубликована!' : 'Черновик сохранён')
       router.push('/admin/articles')
     } catch (error) {
       console.error('Save error:', error)
-      if (error.message.includes('duplicate key')) {
-        toast.error('Статья с таким slug уже существует')
+      if (error.message?.includes('duplicate') || error.code === '23505') {
+        toast.error('Статья с таким URL уже существует')
       } else {
-        toast.error(t.error)
+        toast.error('Ошибка сохранения: ' + (error.message || 'Неизвестная ошибка'))
       }
     } finally {
       setSaving(false)
     }
-  }, [title, slug, category, coverImage, content, status, t, router])
+  }, [title, slug, category, coverImage, content, status, router])
 
   return (
     <div>
@@ -135,7 +143,7 @@ export default function NewArticle() {
           <Button
             variant="ghost"
             onClick={() => router.push('/admin/articles')}
-            className="text-purple-400"
+            className="text-purple-400 hover:text-purple-300"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Назад
@@ -149,9 +157,9 @@ export default function NewArticle() {
             onClick={() => handleSave(false)}
             disabled={saving}
             variant="outline"
-            className="border-purple-600 text-purple-300"
+            className="border-purple-600 text-purple-300 hover:bg-purple-900/30"
           >
-            <Save className="mr-2 h-4 w-4" />
+            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
             {t.saveDraft}
           </Button>
           <Button
@@ -159,7 +167,8 @@ export default function NewArticle() {
             disabled={saving}
             className="bg-purple-600 hover:bg-purple-700"
           >
-            {saving ? t.loading : t.publish}
+            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            {saving ? 'Сохранение...' : t.publish}
           </Button>
         </div>
       </div>
@@ -167,7 +176,7 @@ export default function NewArticle() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Title */}
+          {/* Title & Slug */}
           <Card className="border-purple-900/50 bg-slate-900/50 p-6">
             <div className="space-y-4">
               <div>
@@ -177,7 +186,7 @@ export default function NewArticle() {
                   value={title}
                   onChange={(e) => handleTitleChange(e.target.value)}
                   placeholder="Введите заголовок статьи"
-                  className="bg-slate-800 border-slate-700 mt-2"
+                  className="bg-slate-800 border-slate-700 mt-2 text-white"
                 />
               </div>
               <div>
@@ -187,7 +196,7 @@ export default function NewArticle() {
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                   placeholder="url-statii"
-                  className="bg-slate-800 border-slate-700 mt-2"
+                  className="bg-slate-800 border-slate-700 mt-2 text-white"
                 />
                 <p className="text-xs text-slate-500 mt-1">
                   URL: /articles/{slug || 'url-statii'}
@@ -199,20 +208,10 @@ export default function NewArticle() {
           {/* Content Editor */}
           <Card className="border-purple-900/50 bg-slate-900/50 p-6">
             <Label className="text-purple-300 mb-4 block">{t.content} *</Label>
-            <div data-color-mode="dark">
-              <MDEditor
-                value={content}
-                onChange={setContent}
-                height={500}
-                preview="edit"
-                hideToolbar={false}
-                enableScroll={true}
-                visibleDragbar={false}
-              />
-            </div>
-            <p className="text-xs text-slate-500 mt-2">
-              Поддерживается Markdown: заголовки, списки, ссылки, изображения, код, таблицы
-            </p>
+            <ArticleEditor
+              value={content}
+              onChange={setContent}
+            />
           </Card>
         </div>
 
@@ -248,9 +247,9 @@ export default function NewArticle() {
                 <Button
                   variant="outline"
                   onClick={() => setCoverImage('')}
-                  className="w-full border-red-600 text-red-400"
+                  className="w-full border-red-600 text-red-400 hover:bg-red-900/30"
                 >
-                  Удалить
+                  Удалить обложку
                 </Button>
               </div>
             ) : (
@@ -266,9 +265,13 @@ export default function NewArticle() {
                   variant="outline"
                   onClick={() => document.getElementById('cover-upload')?.click()}
                   disabled={uploading}
-                  className="w-full border-purple-600 text-purple-300"
+                  className="w-full border-purple-600 text-purple-300 hover:bg-purple-900/30"
                 >
-                  <Upload className="mr-2 h-4 w-4" />
+                  {uploading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="mr-2 h-4 w-4" />
+                  )}
                   {uploading ? 'Загрузка...' : t.uploadImage}
                 </Button>
               </div>
@@ -296,4 +299,3 @@ export default function NewArticle() {
     </div>
   )
 }
-
