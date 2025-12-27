@@ -129,7 +129,10 @@ export default function AdminLayout({ children }) {
             </Button>
             <Button
               variant="ghost"
-              onClick={signOut}
+              onClick={(e) => {
+                e.preventDefault()
+                signOut()
+              }}
               className="w-full justify-start text-red-300 hover:text-red-200 hover:bg-red-900/20"
             >
               <LogOut className="mr-2 h-4 w-4" />
