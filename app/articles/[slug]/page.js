@@ -281,14 +281,14 @@ export default function ArticlePage() {
     <div className="min-h-screen">
       {/* Индикатор перевода */}
       {translating && (
-        <div className="fixed top-20 right-4 z-50 bg-purple-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
+        <div className="fixed top-16 sm:top-20 right-2 sm:right-4 z-50 bg-purple-600 text-white px-3 py-2 rounded-lg shadow-lg flex items-center gap-2 text-sm">
           <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
           {lt.translating}
         </div>
       )}
       
       {/* Hero Section with Cover Image */}
-      <div className="relative h-[300px] md:h-[400px] overflow-hidden">
+      <div className="relative h-[220px] sm:h-[300px] md:h-[400px] overflow-hidden">
         {article.cover_image_url ? (
           <>
             <img
@@ -302,28 +302,28 @@ export default function ArticlePage() {
           <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 to-pink-900/30" />
         )}
         
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8">
           <div className="container mx-auto max-w-4xl">
             {/* Breadcrumbs */}
-            <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-              <Link href="/" className="hover:text-foreground transition-colors">{lt.home}</Link>
-              <ChevronRight className="h-4 w-4" />
-              <Link href="/articles" className="hover:text-foreground transition-colors">{lt.articles}</Link>
-              <ChevronRight className="h-4 w-4" />
-              <span className="text-purple-500 dark:text-purple-400">{t[article.category] || article.category}</span>
+            <nav className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-4 overflow-x-auto">
+              <Link href="/" className="hover:text-foreground transition-colors whitespace-nowrap">{lt.home}</Link>
+              <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+              <Link href="/articles" className="hover:text-foreground transition-colors whitespace-nowrap">{lt.articles}</Link>
+              <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+              <span className="text-purple-500 dark:text-purple-400 whitespace-nowrap">{t[article.category] || article.category}</span>
             </nav>
             
-            <h1 className="text-2xl md:text-4xl font-bold mb-4 text-foreground">
+            <h1 className="text-xl sm:text-2xl md:text-4xl font-bold mb-2 sm:mb-4 text-foreground leading-tight">
               {displayTitle}
             </h1>
             
-            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-purple-500" />
+            <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-500" />
                 {readingTime} {lt.minRead}
               </div>
-              <div className="flex items-center gap-2">
-                <Tag className="h-4 w-4 text-purple-500" />
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Tag className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-500" />
                 {t[article.category] || article.category}
               </div>
             </div>
@@ -332,15 +332,15 @@ export default function ArticlePage() {
       </div>
 
       {/* Article Content */}
-      <div className="container mx-auto px-4 py-8 md:py-12">
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 md:py-12">
         <article className="max-w-3xl mx-auto">
           {/* Карточка с контентом для удобного чтения */}
-          <div className="bg-amber-50/70 dark:bg-slate-900/90 rounded-2xl p-6 md:p-10 shadow-sm border border-amber-100 dark:border-slate-800">
+          <div className="bg-amber-50/70 dark:bg-slate-900/90 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-10 shadow-sm border border-amber-100 dark:border-slate-800">
             {/* Article Body */}
             <div 
               className="article-content font-article text-slate-800 dark:text-slate-200"
               style={{
-                fontSize: '17px',
+                fontSize: 'clamp(15px, 4vw, 17px)',
                 lineHeight: '1.7',
                 fontWeight: '400'
               }}
