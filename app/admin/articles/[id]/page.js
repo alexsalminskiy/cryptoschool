@@ -119,6 +119,7 @@ export default function EditArticle() {
     setSaving(true)
     try {
       const updateData = {
+        id: params.id,
         title: title.trim(),
         slug: slug.trim(),
         category,
@@ -127,27 +128,36 @@ export default function EditArticle() {
         status
       }
 
-      console.log('Updating article:', updateData)
+      console.log('Updating article via API:', updateData)
 
-      const { error } = await supabase
-        .from('articles')
-        .update(updateData)
-        .eq('id', params.id)
+      // Используем API endpoint
+      const response = await fetch('/api/articles', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData),
+      })
 
-      if (error) {
-        console.error('Supabase error:', error)
-        throw error
+      const result = await response.json()
+      console.log('API response:', result)
+
+      if (!response.ok || result.error) {
+        const errorMsg = result.error || 'Неизвестная ошибка'
+        console.error('API error:', errorMsg)
+        if (errorMsg.includes('duplicate') || errorMsg.includes('23505')) {
+          toast.error('Статья с таким URL уже существует')
+        } else {
+          toast.error('Ошибка сохранения: ' + errorMsg)
+        }
+        return
       }
 
       toast.success('Статья сохранена!')
       router.push('/admin/articles')
     } catch (error) {
       console.error('Save error:', error)
-      if (error.message?.includes('duplicate') || error.code === '23505') {
-        toast.error('Статья с таким URL уже существует')
-      } else {
-        toast.error('Ошибка сохранения: ' + (error.message || 'Неизвестная ошибка'))
-      }
+      toast.error('Ошибка сети: ' + (error.message || 'Неизвестная ошибка'))
     } finally {
       setSaving(false)
     }
