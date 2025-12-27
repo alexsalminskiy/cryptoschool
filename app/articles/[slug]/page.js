@@ -335,7 +335,7 @@ export default function ArticlePage() {
       <div className="container mx-auto px-4 py-8 md:py-12">
         <article className="max-w-3xl mx-auto">
           {/* Карточка с контентом для удобного чтения */}
-          <div className="bg-white dark:bg-slate-900/80 rounded-2xl p-6 md:p-10 shadow-sm border border-slate-100 dark:border-slate-800">
+          <div className="bg-amber-50/70 dark:bg-slate-900/90 rounded-2xl p-6 md:p-10 shadow-sm border border-amber-100 dark:border-slate-800">
             {/* Article Body */}
             <div 
               className="article-content font-article text-slate-800 dark:text-slate-200"
@@ -350,8 +350,8 @@ export default function ArticlePage() {
 
           {/* FAQ Section */}
           {faqs.length > 0 && (
-            <div className="mt-12 bg-white dark:bg-slate-900/80 rounded-2xl p-6 md:p-10 border border-slate-100 dark:border-slate-800">
-              <h2 className="text-xl font-bold mb-6 text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-700 pb-3">
+            <div className="mt-12 bg-amber-50/70 dark:bg-slate-900/90 rounded-2xl p-6 md:p-10 border border-amber-100 dark:border-slate-800">
+              <h2 className="text-xl font-bold mb-6 text-slate-900 dark:text-slate-100 border-b border-amber-200 dark:border-slate-700 pb-3">
                 {lt.faq}
               </h2>
               <div className="space-y-3 font-article">
