@@ -275,16 +275,56 @@ export default function ArticleEditor({ value, onChange }) {
   // Обработчики форматирования
   const handleBold = () => wrapSelection('**', '**', 'жирный текст')
   const handleItalic = () => wrapSelection('*', '*', 'курсив')
-  const handleH1 = () => { insertAtCursor('\n# Заголовок\n'); setShowHeadingMenu(false) }
-  const handleH2 = () => { insertAtCursor('\n## Заголовок раздела\n'); setShowHeadingMenu(false) }
-  const handleH3 = () => { insertAtCursor('\n### Подзаголовок\n'); setShowHeadingMenu(false) }
-  const handleH4 = () => { insertAtCursor('\n#### Маленький заголовок\n'); setShowHeadingMenu(false) }
+  
+  // Заголовки - оборачивают выделенный текст
+  const handleH1 = () => { 
+    wrapSelectionLine('# ', '')
+    setShowHeadingMenu(false) 
+  }
+  const handleH2 = () => { 
+    wrapSelectionLine('## ', '')
+    setShowHeadingMenu(false) 
+  }
+  const handleH3 = () => { 
+    wrapSelectionLine('### ', '')
+    setShowHeadingMenu(false) 
+  }
+  const handleH4 = () => { 
+    wrapSelectionLine('#### ', '')
+    setShowHeadingMenu(false) 
+  }
+  
   const handleList = () => insertAtCursor('\n- Пункт 1\n- Пункт 2\n- Пункт 3\n')
   const handleOrderedList = () => insertAtCursor('\n1. Первый\n2. Второй\n3. Третий\n')
   const handleCode = () => wrapSelection('`', '`', 'код')
   const handleLink = () => wrapSelection('[', '](https://)', 'текст ссылки')
   const handleQuote = () => insertAtCursor('\n> Цитата или важная информация\n')
   const handleDivider = () => insertAtCursor('\n---\n')
+  
+  // Оборачивание строки (для заголовков)
+  const wrapSelectionLine = useCallback((prefix, suffix = '') => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const selectedText = value.substring(start, end)
+    
+    if (selectedText) {
+      // Если есть выделенный текст - делаем его заголовком
+      const newText = value.substring(0, start) + '\n' + prefix + selectedText + suffix + '\n' + value.substring(end)
+      onChange(newText)
+    } else {
+      // Если нет выделения - вставляем placeholder
+      const placeholder = 'Заголовок'
+      const newText = value.substring(0, start) + '\n' + prefix + placeholder + suffix + '\n' + value.substring(end)
+      onChange(newText)
+    }
+    
+    setTimeout(() => {
+      textarea.focus()
+    }, 0)
+  }, [value, onChange])
   
   // Вставка цветного текста
   const handleColorSelect = (color) => {
