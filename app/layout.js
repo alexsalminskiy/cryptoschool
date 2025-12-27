@@ -1,4 +1,4 @@
-import { Inter } from 'next/font/google'
+import { Inter, Merriweather } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -6,7 +6,12 @@ import { LanguageProvider } from '@/contexts/LanguageContext'
 import { Toaster } from '@/components/ui/sonner'
 import HeaderWrapper from '@/components/HeaderWrapper'
 
-const inter = Inter({ subsets: ['latin', 'cyrillic'] })
+const inter = Inter({ subsets: ['latin', 'cyrillic'], variable: '--font-inter' })
+const merriweather = Merriweather({ 
+  weight: ['300', '400', '700'],
+  subsets: ['latin', 'cyrillic'],
+  variable: '--font-merriweather'
+})
 
 export const metadata = {
   title: 'Crypto Academy | Learn Cryptocurrencies & Blockchain',
