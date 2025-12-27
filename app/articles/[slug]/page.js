@@ -39,9 +39,12 @@ function parseMarkdown(md) {
   if (!md) return ''
   
   let html = md
-    // Заголовки
+    // Заголовки (порядок важен - от большего к меньшему)
+    .replace(/^#### (.+)$/gm, '<h4 class="text-lg font-semibold mt-6 mb-3 text-purple-500 dark:text-purple-400">$1</h4>')
     .replace(/^### (.+)$/gm, '<h3 class="text-xl font-semibold mt-8 mb-4 text-purple-600 dark:text-purple-400">$1</h3>')
     .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-bold mt-10 mb-4 text-purple-700 dark:text-purple-300 border-b border-purple-500/20 pb-2">$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 class="text-3xl font-bold mt-10 mb-6 text-purple-800 dark:text-purple-200">$1</h1>')
+    // HTML теги для размера и цвета (оставляем как есть)
     // Жирный и курсив
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
@@ -53,6 +56,8 @@ function parseMarkdown(md) {
     .replace(/^\- (.+)$/gm, '<li class="flex items-start gap-2 mb-2"><span class="text-purple-500 mt-1">●</span><span>$1</span></li>')
     // Цитаты
     .replace(/^> (.+)$/gm, '<blockquote class="border-l-4 border-purple-500 bg-purple-500/10 pl-4 py-2 my-4 italic">$1</blockquote>')
+    // Горизонтальная линия
+    .replace(/^---$/gm, '<hr class="my-8 border-purple-500/20" />')
     // Параграфы
     .replace(/\n\n/g, '</p><p class="mb-4 leading-7">')
 
