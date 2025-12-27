@@ -39,6 +39,7 @@ export default function EditArticle() {
     if (params.id) {
       fetchArticle()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id])
 
   const fetchArticle = async () => {
