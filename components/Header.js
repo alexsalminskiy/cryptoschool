@@ -30,13 +30,11 @@ export default function Header() {
     router.push('/')
   }
 
-  const navLinks = [
-    { href: '/', label: t.home },
-    { href: '/articles', label: t.articles },
-  ]
-
-  if (isAdmin) {
-    navLinks.push({ href: '/admin', label: t.admin })
+  // Навигация только для авторизованных
+  const navLinks = []
+  
+  if (user && profile?.approved) {
+    navLinks.push({ href: '/articles', label: t.articles })
   }
 
   return (
@@ -53,21 +51,23 @@ export default function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`text-sm font-medium transition-colors hover:text-purple-400 ${
-                  pathname === link.href
-                    ? 'text-purple-400'
-                    : 'text-slate-300'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+          {navLinks.length > 0 && (
+            <nav className="hidden md:flex items-center space-x-6">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`text-sm font-medium transition-colors hover:text-purple-400 ${
+                    pathname === link.href
+                      ? 'text-purple-400'
+                      : 'text-slate-300'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          )}
 
           {/* Right side actions */}
           <div className="flex items-center space-x-4">
@@ -106,7 +106,7 @@ export default function Header() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm">
-                    {user.email}
+                    {profile?.first_name || user.email}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -121,32 +121,44 @@ export default function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => router.push('/sign-in')}
-                className="bg-purple-600 hover:bg-purple-700"
-              >
-                {t.signIn}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => router.push('/sign-in')}
+                  className="text-slate-300"
+                >
+                  {t.signIn}
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => router.push('/sign-up')}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  {t.signUp}
+                </Button>
+              </div>
             )}
 
             {/* Mobile menu button */}
-            <button
-              className="md:hidden"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
-            </button>
+            {navLinks.length > 0 && (
+              <button
+                className="md:hidden"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
+              </button>
+            )}
           </div>
         </div>
 
         {/* Mobile Navigation */}
-        {mobileMenuOpen && (
+        {mobileMenuOpen && navLinks.length > 0 && (
           <nav className="md:hidden py-4 space-y-2">
             {navLinks.map((link) => (
               <Link

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { signUp } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { translations } from '@/lib/i18n'
 
@@ -15,25 +15,64 @@ export default function SignUpPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [middleName, setMiddleName] = useState('')
   const [loading, setLoading] = useState(false)
   const [language] = useState('ru')
   const t = translations[language]
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    if (!firstName || !lastName) {
+      toast.error('Укажите Фамилию и Имя')
+      return
+    }
+    
     setLoading(true)
 
     try {
-      const { error } = await signUp(email, password)
+      // Регистрация в Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
+        }
+      })
       
-      if (error) {
-        toast.error(error.message)
-      } else {
-        toast.success(t.signUpSuccess)
-        router.push('/sign-in')
+      if (authError) {
+        toast.error(authError.message)
+        return
       }
+
+      // Создание профиля с ФИО
+      if (authData.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: authData.user.id,
+            email: authData.user.email,
+            first_name: firstName,
+            last_name: lastName,
+            middle_name: middleName || null,
+            role: 'user',
+            approved: false
+          }, {
+            onConflict: 'id'
+          })
+
+        if (profileError) {
+          console.error('Profile creation error:', profileError)
+        }
+      }
+
+      toast.success('Регистрация успешна! Войдите в систему.')
+      router.push('/sign-in')
     } catch (error) {
-      toast.error(t.error)
+      console.error('Sign up error:', error)
+      toast.error('Ошибка регистрации')
     } finally {
       setLoading(false)
     }
@@ -52,7 +91,42 @@ export default function SignUpPage() {
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">{t.email}</Label>
+                <Label htmlFor="lastName">Фамилия *</Label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  placeholder="Иванов"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                  className="bg-slate-800 border-slate-700"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="firstName">Имя *</Label>
+                <Input
+                  id="firstName"
+                  type="text"
+                  placeholder="Иван"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                  className="bg-slate-800 border-slate-700"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="middleName">Отчество</Label>
+                <Input
+                  id="middleName"
+                  type="text"
+                  placeholder="Иванович"
+                  value={middleName}
+                  onChange={(e) => setMiddleName(e.target.value)}
+                  className="bg-slate-800 border-slate-700"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">{t.email} *</Label>
                 <Input
                   id="email"
                   type="email"
@@ -64,7 +138,7 @@ export default function SignUpPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">{t.password}</Label>
+                <Label htmlFor="password">{t.password} *</Label>
                 <Input
                   id="password"
                   type="password"

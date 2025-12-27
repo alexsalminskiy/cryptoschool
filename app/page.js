@@ -4,38 +4,12 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowRight, BookOpen, Shield, TrendingUp, Eye } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { ArrowRight, BookOpen, Shield, TrendingUp } from 'lucide-react'
 import { translations } from '@/lib/i18n'
-import { format } from 'date-fns'
 
 export default function HomePage() {
-  const [articles, setArticles] = useState([])
-  const [loading, setLoading] = useState(true)
   const [language, setLanguage] = useState('ru')
   const t = translations[language]
-
-  useEffect(() => {
-    fetchLatestArticles()
-  }, [])
-
-  const fetchLatestArticles = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('articles')
-        .select('*')
-        .eq('status', 'published')
-        .order('created_at', { ascending: false })
-        .limit(6)
-
-      if (error) throw error
-      setArticles(data || [])
-    } catch (error) {
-      console.error('Error fetching articles:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   return (
     <div className="min-h-screen">
@@ -65,7 +39,7 @@ export default function HomePage() {
                 asChild
                 className="bg-purple-600 hover:bg-purple-700 text-lg px-8"
               >
-                <Link href="/articles">
+                <Link href="/sign-up">
                   {t.getStarted}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
@@ -112,16 +86,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Latest Articles Preview или CTA */}
+      {/* CTA Section */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <div className="mb-12 flex items-center justify-between">
-            <h2 className="text-3xl font-bold text-purple-300">
-              {t.latestArticles}
-            </h2>
-          </div>
-
-          {/* CTA для неавторизованных пользователей */}
           <Card className="border-purple-900/50 bg-slate-900/50 backdrop-blur p-12 text-center">
             <div className="mx-auto max-w-2xl space-y-6">
               <div className="mx-auto w-16 h-16 rounded-full bg-purple-600/20 flex items-center justify-center">
@@ -159,59 +126,6 @@ export default function HomePage() {
               </p>
             </div>
           </Card>
-
-          {loading ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="border-purple-900/50 bg-slate-900/50 animate-pulse">
-                  <div className="h-48 bg-slate-800" />
-                  <CardHeader>
-                    <div className="h-6 bg-slate-800 rounded" />
-                    <div className="h-4 bg-slate-800 rounded w-2/3" />
-                  </CardHeader>
-                </Card>
-              ))}
-            </div>
-          ) : articles.length === 0 ? (
-            <Card className="border-purple-900/50 bg-slate-900/50 backdrop-blur p-12 text-center">
-              <p className="text-slate-400 text-lg">
-                Пока нет опубликованных статей. Скоро появятся!
-              </p>
-            </Card>
-          ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {articles.map((article) => (
-                <Link key={article.id} href={`/articles/${article.slug}`}>
-                  <Card className="border-purple-900/50 bg-slate-900/50 backdrop-blur hover:bg-slate-800/50 transition-all h-full group">
-                    {article.cover_image_url && (
-                      <div className="relative h-48 overflow-hidden">
-                        <img
-                          src={article.cover_image_url}
-                          alt={article.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute top-2 right-2 bg-purple-600 px-3 py-1 rounded-full text-xs font-semibold">
-                          {article.category}
-                        </div>
-                      </div>
-                    )}
-                    <CardHeader>
-                      <CardTitle className="text-purple-300 group-hover:text-purple-200 transition-colors line-clamp-2">
-                        {article.title}
-                      </CardTitle>
-                      <CardDescription className="text-slate-400 flex items-center justify-between">
-                        <span>{format(new Date(article.created_at), 'dd.MM.yyyy')}</span>
-                        <span className="flex items-center gap-1">
-                          <Eye className="h-3 w-3" />
-                          {article.views}
-                        </span>
-                      </CardDescription>
-                    </CardHeader>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          )}
         </div>
       </section>
     </div>
