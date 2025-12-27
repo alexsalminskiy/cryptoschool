@@ -251,18 +251,38 @@ export default function ArticlePage() {
     return null
   }
 
-  const faqs = parseFAQ(article.content_md)
-  const contentWithoutFAQ = cleanContent(article.content_md)
+  // Используем переведённый контент если есть
+  const displayContent = translatedContent || article.content_md
+  const displayTitle = translatedTitle || article.title
+  
+  const faqs = parseFAQ(displayContent)
+  const contentWithoutFAQ = cleanContent(displayContent)
+  
+  // Тексты для разных языков
+  const langTexts = {
+    ru: { home: 'Главная', articles: 'Статьи', minRead: 'мин. чтения', faq: 'Часто задаваемые вопросы', allArticles: 'Все статьи', translating: 'Переводим...' },
+    en: { home: 'Home', articles: 'Articles', minRead: 'min read', faq: 'Frequently Asked Questions', allArticles: 'All Articles', translating: 'Translating...' },
+    kk: { home: 'Басты бет', articles: 'Мақалалар', minRead: 'мин. оқу', faq: 'Жиі қойылатын сұрақтар', allArticles: 'Барлық мақалалар', translating: 'Аударылуда...' }
+  }
+  const lt = langTexts[currentLang] || langTexts['ru']
 
   return (
     <div className="min-h-screen">
+      {/* Индикатор перевода */}
+      {translating && (
+        <div className="fixed top-20 right-4 z-50 bg-purple-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
+          <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+          {lt.translating}
+        </div>
+      )}
+      
       {/* Hero Section with Cover Image */}
       <div className="relative h-[300px] md:h-[400px] overflow-hidden">
         {article.cover_image_url ? (
           <>
             <img
               src={article.cover_image_url}
-              alt={article.title}
+              alt={displayTitle}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
@@ -275,21 +295,21 @@ export default function ArticlePage() {
           <div className="container mx-auto max-w-4xl">
             {/* Breadcrumbs */}
             <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-              <Link href="/" className="hover:text-foreground transition-colors">Главная</Link>
+              <Link href="/" className="hover:text-foreground transition-colors">{lt.home}</Link>
               <ChevronRight className="h-4 w-4" />
-              <Link href="/articles" className="hover:text-foreground transition-colors">Статьи</Link>
+              <Link href="/articles" className="hover:text-foreground transition-colors">{lt.articles}</Link>
               <ChevronRight className="h-4 w-4" />
               <span className="text-purple-500 dark:text-purple-400">{t[article.category] || article.category}</span>
             </nav>
             
             <h1 className="text-2xl md:text-4xl font-bold mb-4 text-foreground">
-              {article.title}
+              {displayTitle}
             </h1>
             
             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-purple-500" />
-                {readingTime} мин. чтения
+                {readingTime} {lt.minRead}
               </div>
               <div className="flex items-center gap-2">
                 <Tag className="h-4 w-4 text-purple-500" />
@@ -313,7 +333,7 @@ export default function ArticlePage() {
           {faqs.length > 0 && (
             <div className="mt-12">
               <h2 className="text-2xl font-bold mb-6 text-purple-700 dark:text-purple-300 border-b border-purple-500/20 pb-3">
-                Часто задаваемые вопросы
+                {lt.faq}
               </h2>
               <div className="space-y-3">
                 {faqs.map((faq, index) => (
