@@ -10,26 +10,39 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { translations } from '@/lib/i18n'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Eye, EyeOff } from 'lucide-react'
 
 export default function SignInPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [language] = useState('ru')
   const t = translations[language]
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    if (!email.trim() || !password) {
+      toast.error('Введите email и пароль')
+      return
+    }
+    
     setLoading(true)
 
     try {
-      // Вход в систему
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      // Вход в систему с таймаутом
+      const authPromise = supabase.auth.signInWithPassword({
         email: email.trim(),
         password
       })
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Таймаут - попробуйте ещё раз')), 10000)
+      )
+      
+      const { data: authData, error: authError } = await Promise.race([authPromise, timeoutPromise])
 
       if (authError) {
         if (authError.message.includes('Invalid login')) {
@@ -37,33 +50,37 @@ export default function SignInPage() {
         } else {
           toast.error(authError.message)
         }
+        setLoading(false)
         return
       }
 
-      // Проверяем профиль пользователя
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('approved, role')
-        .eq('id', authData.user.id)
-        .single()
+      if (!authData?.user) {
+        toast.error('Ошибка авторизации')
+        setLoading(false)
+        return
+      }
+
+      // Проверяем профиль через API
+      const profileResponse = await fetch(`/api/users`)
+      const users = await profileResponse.json()
+      const profile = users.find(u => u.id === authData.user.id)
 
       toast.success('Вход выполнен!')
 
-      // Небольшая задержка для обновления состояния Auth
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      // Перенаправление в зависимости от статуса
-      if (profile?.role === 'admin') {
-        window.location.href = '/admin'
-      } else if (profile?.approved) {
-        window.location.href = '/articles'
-      } else {
-        window.location.href = '/pending-approval'
-      }
+      // Перенаправление
+      setTimeout(() => {
+        if (profile?.role === 'admin') {
+          window.location.href = '/admin'
+        } else if (profile?.approved) {
+          window.location.href = '/articles'
+        } else {
+          window.location.href = '/pending-approval'
+        }
+      }, 300)
 
     } catch (error) {
-      toast.error('Ошибка входа')
-    } finally {
+      console.error('Login error:', error)
+      toast.error(error.message || 'Ошибка входа')
       setLoading(false)
     }
   }
@@ -94,15 +111,24 @@ export default function SignInPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">{t.password}</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Ваш пароль"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="bg-background border-border"
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Ваш пароль"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="bg-background border-border pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
