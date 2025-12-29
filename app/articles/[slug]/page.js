@@ -103,37 +103,9 @@ function parseMarkdown(md) {
     .replace(/^---$/gm, '<hr class="my-8 border-slate-200 dark:border-slate-700" />')
     // Переносы строк в параграфы
     .replace(/\n\n/g, '</p><p class="mb-4">')
-    .replace(/^#### (.+)$/gm, '<h4 class="text-lg font-semibold mt-6 mb-3 text-slate-900 dark:text-slate-100">$1</h4>')
-    .replace(/^### (.+)$/gm, '<h3 class="text-xl font-semibold mt-8 mb-4 text-slate-900 dark:text-slate-100">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold mt-8 mb-4 text-slate-900 dark:text-slate-100 pb-2 border-b border-slate-200 dark:border-slate-700">$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold mt-8 mb-5 text-slate-900 dark:text-slate-100">$1</h1>')
-  
-  // Применяем форматирование к остальному тексту (не внутри HTML тегов)
-  html = processFormatting(html)
-  
-  html = html
-    // Код
-    .replace(/`([^`]+)`/g, '<code class="bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-sm font-mono text-purple-600 dark:text-purple-400">$1</code>')
-    // Изображения - с классом для клика
-    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<figure class="my-6"><img src="$2" alt="$1" class="rounded-lg w-full cursor-zoom-in hover:opacity-90 transition-opacity article-image" data-zoomable="true" loading="lazy" /></figure>')
-    // Ссылки
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-purple-600 dark:text-purple-400 hover:underline" target="_blank" rel="noopener">$1</a>')
-    // Списки
-    .replace(/^\- (.+)$/gm, '<li class="flex items-start gap-2 mb-2"><span class="text-purple-500 mt-1.5 text-xs">●</span><span>$1</span></li>')
-    // Цитаты
-    .replace(/^> (.+)$/gm, '<blockquote class="border-l-4 border-purple-500 bg-slate-50 dark:bg-slate-800/50 pl-4 py-3 my-6 text-slate-600 dark:text-slate-400">$1</blockquote>')
-    // Горизонтальная линия
-    .replace(/^---$/gm, '<hr class="my-8 border-slate-200 dark:border-slate-700" />')
-    // Переносы строк в параграфы
-    .replace(/\n\n/g, '</p><p class="mb-4">')
 
   // Оборачиваем списки
   html = html.replace(/(<li[^>]*>.*?<\/li>\s*)+/g, '<ul class="mb-4 list-none">$&</ul>')
-  
-  // Восстанавливаем HTML теги
-  htmlTags.forEach((tag, index) => {
-    html = html.replace(`__HTML_TAG_${index}__`, tag)
-  })
   
   return `<div class="article-text"><p class="mb-4">${html}</p></div>`
 }
