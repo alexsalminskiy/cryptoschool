@@ -360,17 +360,6 @@ export default function UsersManagement() {
                       )
                     )}
                     
-                    {/* Сделать/убрать админа */}
-                    <Button 
-                      size="sm" 
-                      variant="ghost"
-                      onClick={() => handleToggleAdmin(user.id, user.role)}
-                      className={user.role === 'admin' ? "text-yellow-400 hover:bg-yellow-900/20" : "text-blue-400 hover:bg-blue-900/20"}
-                      title={user.role === 'admin' ? "Снять права админа" : "Сделать админом"}
-                    >
-                      <Shield className="h-4 w-4" />
-                    </Button>
-                    
                     {/* Редактировать */}
                     <Button 
                       size="sm" 
