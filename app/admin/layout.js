@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { Button } from '@/components/ui/button'
-import { LayoutDashboard, FileText, Users, ArrowLeft, LogOut, Loader2, Sun, Moon } from 'lucide-react'
+import { LayoutDashboard, FileText, Users, ArrowLeft, LogOut, Loader2, Sun, Moon, Shield } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
