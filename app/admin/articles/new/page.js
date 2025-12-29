@@ -162,11 +162,14 @@ export default function NewArticle() {
 
   // Цвет текста
   const handleColorSelect = (color) => {
-    const textarea = textareaRef.current
-    if (!textarea) return
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    let selectedText = content.substring(start, end) || 'цветной текст'
+    const { start, end } = savedSelection
+    let selectedText = content.substring(start, end)
+    
+    if (!selectedText) {
+      toast.error('Сначала выделите текст')
+      setShowColorPicker(false)
+      return
+    }
     
     // Убираем существующий span с цветом, если он есть
     selectedText = selectedText.replace(/<span style="color:[^"]*">([^<]*)<\/span>/gi, '$1')
@@ -175,16 +178,23 @@ export default function NewArticle() {
     const newContent = content.substring(0, start) + coloredText + content.substring(end)
     setContent(newContent)
     setShowColorPicker(false)
-    setTimeout(() => textarea.focus(), 0)
+    
+    const textarea = textareaRef.current
+    if (textarea) {
+      setTimeout(() => textarea.focus(), 0)
+    }
   }
 
   // Размер текста
   const handleSizeSelect = (size) => {
-    const textarea = textareaRef.current
-    if (!textarea) return
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    let selectedText = content.substring(start, end) || 'текст'
+    const { start, end } = savedSelection
+    let selectedText = content.substring(start, end)
+    
+    if (!selectedText) {
+      toast.error('Сначала выделите текст')
+      setShowSizePicker(false)
+      return
+    }
     
     // Убираем существующий span с размером, если он есть
     selectedText = selectedText.replace(/<span style="font-size:[^"]*">([^<]*)<\/span>/gi, '$1')
@@ -193,7 +203,11 @@ export default function NewArticle() {
     const newContent = content.substring(0, start) + sizedText + content.substring(end)
     setContent(newContent)
     setShowSizePicker(false)
-    setTimeout(() => textarea.focus(), 0)
+    
+    const textarea = textareaRef.current
+    if (textarea) {
+      setTimeout(() => textarea.focus(), 0)
+    }
   }
 
   // Автогенерация slug из заголовка
