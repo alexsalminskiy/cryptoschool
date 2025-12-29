@@ -80,8 +80,20 @@ export default function NewArticle() {
   const [uploading, setUploading] = useState(false)
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [showSizePicker, setShowSizePicker] = useState(false)
+  const [savedSelection, setSavedSelection] = useState({ start: 0, end: 0 })
   const [language] = useState('ru')
   const t = translations[language]
+
+  // Сохранить текущее выделение
+  const saveSelection = () => {
+    const textarea = textareaRef.current
+    if (textarea) {
+      setSavedSelection({
+        start: textarea.selectionStart,
+        end: textarea.selectionEnd
+      })
+    }
+  }
 
   // Вставка текста в позицию курсора
   const insertAtCursor = (text) => {
