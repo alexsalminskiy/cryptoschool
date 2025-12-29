@@ -108,7 +108,7 @@ export default function SignInPage() {
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4 px-4 sm:px-6">
               <div className="space-y-2">
-                <Label htmlFor="email">{t.emailLabel}</Label>
+                <Label htmlFor="email">{t.email}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -120,7 +120,7 @@ export default function SignInPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">{t.passwordLabel}</Label>
+                <Label htmlFor="password">{t.password}</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -153,7 +153,7 @@ export default function SignInPage() {
                     Вход...
                   </>
                 ) : (
-                  t.signInButton
+                  t.signIn
                 )}
               </Button>
               <p className="text-center text-sm text-muted-foreground">
