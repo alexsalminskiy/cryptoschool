@@ -162,21 +162,17 @@ export default function EditArticle() {
   const saveSelection = () => {
     const textarea = textareaRef.current
     if (textarea) {
-      const sel = {
+      setSavedSelection({
         start: textarea.selectionStart,
         end: textarea.selectionEnd
-      }
-      console.log('Saving selection:', sel, 'Text:', content.substring(sel.start, sel.end))
-      setSavedSelection(sel)
+      })
     }
   }
 
   // Цвет текста
   const handleColorSelect = (color) => {
     const { start, end } = savedSelection
-    console.log('Applying color:', color, 'Selection:', savedSelection)
     let selectedText = content.substring(start, end)
-    console.log('Selected text:', selectedText)
     
     if (!selectedText) {
       toast.error('Сначала выделите текст')
@@ -189,7 +185,6 @@ export default function EditArticle() {
     
     const coloredText = `<span style="color: ${color}">${selectedText}</span>`
     const newContent = content.substring(0, start) + coloredText + content.substring(end)
-    console.log('New content length:', newContent.length)
     setContent(newContent)
     setShowColorPicker(false)
     
