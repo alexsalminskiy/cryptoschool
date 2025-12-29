@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { ArrowLeft, Clock, Tag, ChevronRight, ChevronDown, ChevronUp, X } from 'lucide-react'
+import { ArrowLeft, Clock, Tag, ChevronRight, Plus, Minus, X } from 'lucide-react'
 import { translations } from '@/lib/i18n'
 
 // Компонент модального окна для увеличения изображений
