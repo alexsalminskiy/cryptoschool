@@ -18,6 +18,13 @@ import { ArrowLeft, Save, Upload, Trash2, Loader2, Image, Send, Bold, Italic, He
 import { translations, categories } from '@/lib/i18n'
 import { toast } from 'sonner'
 
+// Кнопка панели инструментов (вынесена за пределы компонента)
+const ToolbarBtn = ({ onClick, icon: Icon, title }) => (
+  <Button type="button" variant="ghost" size="sm" onClick={onClick} className="h-8 w-8 p-0" title={title}>
+    <Icon className="h-4 w-4" />
+  </Button>
+)
+
 // Цвета для текста
 const TEXT_COLORS = [
   { name: 'Красный', color: '#ef4444' },
@@ -295,13 +302,6 @@ export default function NewArticle() {
       setSaving(false)
     }
   }
-
-  // Кнопка панели инструментов
-  const ToolbarBtn = ({ onClick, icon: Icon, title }) => (
-    <Button type="button" variant="ghost" size="sm" onClick={onClick} className="h-8 w-8 p-0" title={title}>
-      <Icon className="h-4 w-4" />
-    </Button>
-  )
 
   return (
     <div className="space-y-6">
