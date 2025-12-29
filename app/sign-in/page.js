@@ -32,17 +32,11 @@ export default function SignInPage() {
     setLoading(true)
 
     try {
-      // Вход в систему с таймаутом
-      const authPromise = supabase.auth.signInWithPassword({
+      // Вход в систему
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password
       })
-      
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Таймаут - попробуйте ещё раз')), 10000)
-      )
-      
-      const { data: authData, error: authError } = await Promise.race([authPromise, timeoutPromise])
 
       if (authError) {
         if (authError.message.includes('Invalid login')) {
@@ -60,27 +54,27 @@ export default function SignInPage() {
         return
       }
 
-      // Проверяем профиль через API
-      const profileResponse = await fetch(`/api/users`)
-      const users = await profileResponse.json()
-      const profile = users.find(u => u.id === authData.user.id)
+      // Получаем профиль пользователя напрямую
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, approved')
+        .eq('id', authData.user.id)
+        .single()
 
       toast.success('Вход выполнен!')
 
-      // Перенаправление
-      setTimeout(() => {
-        if (profile?.role === 'admin') {
-          window.location.href = '/admin'
-        } else if (profile?.approved) {
-          window.location.href = '/articles'
-        } else {
-          window.location.href = '/pending-approval'
-        }
-      }, 300)
+      // Быстрое перенаправление
+      if (profile?.role === 'admin') {
+        window.location.href = '/admin'
+      } else if (profile?.approved) {
+        window.location.href = '/articles'
+      } else {
+        window.location.href = '/pending-approval'
+      }
 
     } catch (error) {
       console.error('Login error:', error)
-      toast.error(error.message || 'Ошибка входа')
+      toast.error('Ошибка входа - попробуйте ещё раз')
       setLoading(false)
     }
   }
