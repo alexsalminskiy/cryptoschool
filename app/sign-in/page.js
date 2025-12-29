@@ -65,7 +65,7 @@ export default function SignInPage() {
 
       toast.success('Вход выполнен!')
 
-      // Перенаправление
+      // Перенаправление с небольшой задержкой
       setTimeout(() => {
         if (profile?.role === 'admin') {
           window.location.href = '/admin'
@@ -74,49 +74,9 @@ export default function SignInPage() {
         } else {
           window.location.href = '/pending-approval'
         }
-      }, 500)
+      }, 300)
 
     } catch (error) {
-      console.error('Login error:', error)
-      toast.error('Ошибка входа - попробуйте ещё раз')
-      setLoading(false)
-    }
-  }
-        } else {
-          toast.error(authError.message)
-        }
-        setLoading(false)
-        return
-      }
-
-      if (!authData?.user) {
-        clearTimeout(timeout)
-        toast.error('Ошибка авторизации')
-        setLoading(false)
-        return
-      }
-
-      // Получаем профиль пользователя напрямую
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role, approved')
-        .eq('id', authData.user.id)
-        .single()
-
-      clearTimeout(timeout)
-      toast.success('Вход выполнен!')
-
-      // Перенаправление через window.location для надёжности
-      if (profile?.role === 'admin') {
-        window.location.href = '/admin'
-      } else if (profile?.approved) {
-        window.location.href = '/articles'
-      } else {
-        window.location.href = '/pending-approval'
-      }
-
-    } catch (error) {
-      clearTimeout(timeout)
       console.error('Login error:', error)
       toast.error('Ошибка входа - попробуйте ещё раз')
       setLoading(false)
@@ -136,57 +96,60 @@ export default function SignInPage() {
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4 px-4 sm:px-6">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm">{t.email}</Label>
+                <Label htmlFor="email">{t.emailLabel}</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="your@email.com"
+                  placeholder="email@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="bg-background border-border h-11"
+                  className="bg-background"
+                  disabled={loading}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm">{t.password}</Label>
+                <Label htmlFor="password">{t.passwordLabel}</Label>
                 <div className="relative">
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Ваш пароль"
+                    placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="bg-background border-border pr-10 h-11"
+                    className="bg-background pr-10"
+                    disabled={loading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4 px-4 sm:px-6 pb-6">
-              <Button
-                type="submit"
-                className="w-full bg-purple-600 hover:bg-purple-700 h-11 text-base"
+              <Button 
+                type="submit" 
+                className="w-full bg-purple-600 hover:bg-purple-700"
                 disabled={loading}
               >
                 {loading ? (
-                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Вход...</>
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Вход...
+                  </>
                 ) : (
-                  t.signIn
+                  t.signInButton
                 )}
               </Button>
-              <div className="text-center text-sm text-muted-foreground">
+              <p className="text-center text-sm text-muted-foreground">
                 {t.noAccount}{' '}
-                <Link href="/sign-up" className="text-purple-500 hover:text-purple-400 font-medium">
-                  {t.signUp}
+                <Link href="/sign-up" className="text-purple-500 hover:text-purple-400 hover:underline">
+                  {t.signUpLink}
                 </Link>
-              </div>
+              </p>
             </CardFooter>
           </form>
         </Card>
