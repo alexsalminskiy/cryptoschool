@@ -74,45 +74,35 @@ function FAQItem({ question, answer }) {
 function parseMarkdown(md) {
   if (!md) return ''
   
-  // Функция для обработки markdown форматирования
-  const processFormatting = (text) => {
-    return text
-      // Жирный+курсив (должен быть первым!)
-      .replace(/\*\*\*(.+?)\*\*\*/gs, '<strong class="font-semibold"><em class="italic">$1</em></strong>')
-      // Жирный текст
-      .replace(/\*\*([^*]+?)\*\*/g, '<strong class="font-semibold">$1</strong>')
-      // Курсив
-      .replace(/(?<![*])\*([^*\n]+?)\*(?![*])/g, '<em class="italic">$1</em>')
-      // Зачёркнутый текст
-      .replace(/~~(.+?)~~/gs, '<del class="text-slate-500 dark:text-slate-400">$1</del>')
-  }
-  
-  // Обрабатываем markdown ВНУТРИ span тегов (для цветного текста)
-  let processedMd = md.replace(/<span([^>]*)>([\s\S]*?)<\/span>/gi, (match, attrs, content) => {
-    const processedContent = processFormatting(content)
-    return `<span${attrs}>${processedContent}</span>`
-  })
-  
-  // Обрабатываем markdown ВНУТРИ u тегов (подчёркнутый текст)
-  processedMd = processedMd.replace(/<u>([\s\S]*?)<\/u>/gi, (match, content) => {
-    const processedContent = processFormatting(content)
-    return `<u>${processedContent}</u>`
-  })
-  
-  // Теперь защитим обработанные HTML теги от дальнейшей модификации
-  const htmlTags = []
-  processedMd = processedMd.replace(/<span[^>]*>[\s\S]*?<\/span>/gi, (match) => {
-    htmlTags.push(match)
-    return `__HTML_TAG_${htmlTags.length - 1}__`
-  })
-  
-  processedMd = processedMd.replace(/<u>[\s\S]*?<\/u>/gi, (match) => {
-    htmlTags.push(match)
-    return `__HTML_TAG_${htmlTags.length - 1}__`
-  })
-  
-  let html = processedMd
-    // Заголовки - чистый стиль как на cryptology.school
+  // Сначала обрабатываем ВСЕ markdown форматирование (жирный, курсив и т.д.)
+  let html = md
+    // Жирный+курсив (должен быть первым!)
+    .replace(/\*\*\*([^*]+?)\*\*\*/g, '<strong class="font-semibold"><em class="italic">$1</em></strong>')
+    // Жирный текст - работает с любым содержимым включая HTML теги
+    .replace(/\*\*([^*]*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+    // Курсив
+    .replace(/(?<![*])\*([^*\n]+?)\*(?![*])/g, '<em class="italic">$1</em>')
+    // Зачёркнутый текст
+    .replace(/~~([^~]+?)~~/g, '<del class="text-slate-500 dark:text-slate-400">$1</del>')
+    // Заголовки
+    .replace(/^#### (.+)$/gm, '<h4 class="text-lg font-semibold mt-6 mb-3 text-slate-900 dark:text-slate-100">$1</h4>')
+    .replace(/^### (.+)$/gm, '<h3 class="text-xl font-semibold mt-8 mb-4 text-slate-900 dark:text-slate-100">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold mt-8 mb-4 text-slate-900 dark:text-slate-100 pb-2 border-b border-slate-200 dark:border-slate-700">$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold mt-8 mb-5 text-slate-900 dark:text-slate-100">$1</h1>')
+    // Код
+    .replace(/`([^`]+)`/g, '<code class="bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-sm font-mono text-purple-600 dark:text-purple-400">$1</code>')
+    // Изображения - с классом для клика
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<figure class="my-6"><img src="$2" alt="$1" class="rounded-lg w-full cursor-zoom-in hover:opacity-90 transition-opacity article-image" data-zoomable="true" loading="lazy" /></figure>')
+    // Ссылки
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-purple-600 dark:text-purple-400 hover:underline" target="_blank" rel="noopener">$1</a>')
+    // Списки
+    .replace(/^\- (.+)$/gm, '<li class="flex items-start gap-2 mb-2"><span class="text-purple-500 mt-1.5 text-xs">●</span><span>$1</span></li>')
+    // Цитаты
+    .replace(/^> (.+)$/gm, '<blockquote class="border-l-4 border-purple-500 bg-slate-50 dark:bg-slate-800/50 pl-4 py-3 my-6 text-slate-600 dark:text-slate-400">$1</blockquote>')
+    // Горизонтальная линия
+    .replace(/^---$/gm, '<hr class="my-8 border-slate-200 dark:border-slate-700" />')
+    // Переносы строк в параграфы
+    .replace(/\n\n/g, '</p><p class="mb-4">')
     .replace(/^#### (.+)$/gm, '<h4 class="text-lg font-semibold mt-6 mb-3 text-slate-900 dark:text-slate-100">$1</h4>')
     .replace(/^### (.+)$/gm, '<h3 class="text-xl font-semibold mt-8 mb-4 text-slate-900 dark:text-slate-100">$1</h3>')
     .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold mt-8 mb-4 text-slate-900 dark:text-slate-100 pb-2 border-b border-slate-200 dark:border-slate-700">$1</h2>')
