@@ -421,7 +421,15 @@ export default function EditArticle() {
                 </Button>
               </div>
 
-              <Textarea ref={textareaRef} value={content} onChange={(e) => setContent(e.target.value)} className="min-h-[400px] bg-slate-800 border-slate-700 font-mono" />
+              <Textarea 
+                ref={textareaRef} 
+                value={content} 
+                onChange={(e) => setContent(e.target.value)} 
+                onSelect={handleTextareaSelect}
+                onMouseUp={handleTextareaSelect}
+                onKeyUp={handleTextareaSelect}
+                className="min-h-[400px] bg-slate-800 border-slate-700 font-mono" 
+              />
             </div>
           </Card>
         </div>
