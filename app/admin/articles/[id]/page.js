@@ -282,12 +282,6 @@ export default function EditArticle() {
     }
   }
 
-  const ToolbarBtn = ({ onClick, icon: Icon, title }) => (
-    <Button type="button" variant="ghost" size="sm" onClick={onClick} className="h-8 w-8 p-0" title={title}>
-      <Icon className="h-4 w-4" />
-    </Button>
-  )
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
