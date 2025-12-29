@@ -163,7 +163,11 @@ export default function EditArticle() {
     if (!textarea) return
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
-    const selectedText = content.substring(start, end) || 'цветной текст'
+    let selectedText = content.substring(start, end) || 'цветной текст'
+    
+    // Убираем существующий span с цветом, если он есть
+    selectedText = selectedText.replace(/<span style="color:[^"]*">([^<]*)<\/span>/gi, '$1')
+    
     const coloredText = `<span style="color: ${color}">${selectedText}</span>`
     const newContent = content.substring(0, start) + coloredText + content.substring(end)
     setContent(newContent)
