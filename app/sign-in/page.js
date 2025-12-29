@@ -31,6 +31,12 @@ export default function SignInPage() {
     
     setLoading(true)
 
+    // Таймаут для предотвращения зависания
+    const timeout = setTimeout(() => {
+      setLoading(false)
+      toast.error('Превышено время ожидания. Попробуйте ещё раз.')
+    }, 15000)
+
     try {
       // Вход в систему
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -39,6 +45,7 @@ export default function SignInPage() {
       })
 
       if (authError) {
+        clearTimeout(timeout)
         if (authError.message.includes('Invalid login')) {
           toast.error('Неверный email или пароль')
         } else {
@@ -49,6 +56,7 @@ export default function SignInPage() {
       }
 
       if (!authData?.user) {
+        clearTimeout(timeout)
         toast.error('Ошибка авторизации')
         setLoading(false)
         return
@@ -61,18 +69,20 @@ export default function SignInPage() {
         .eq('id', authData.user.id)
         .single()
 
+      clearTimeout(timeout)
       toast.success('Вход выполнен!')
 
-      // Быстрое перенаправление
+      // Перенаправление через router для лучшей совместимости
       if (profile?.role === 'admin') {
-        window.location.href = '/admin'
+        router.push('/admin')
       } else if (profile?.approved) {
-        window.location.href = '/articles'
+        router.push('/articles')
       } else {
-        window.location.href = '/pending-approval'
+        router.push('/pending-approval')
       }
 
     } catch (error) {
+      clearTimeout(timeout)
       console.error('Login error:', error)
       toast.error('Ошибка входа - попробуйте ещё раз')
       setLoading(false)
