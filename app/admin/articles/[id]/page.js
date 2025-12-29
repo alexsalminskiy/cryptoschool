@@ -340,7 +340,6 @@ export default function EditArticle() {
                 <ToolbarBtn onClick={handleQuote} icon={Quote} title="Цитата" />
                 <ToolbarBtn onClick={handleCode} icon={Code} title="Код" />
                 <ToolbarBtn onClick={handleLink} icon={Link2} title="Ссылка" />
-                <ToolbarBtn onClick={handleFAQ} icon={HelpCircle} title="FAQ блок" />
                 <div className="w-px h-6 bg-slate-600 mx-1" />
                 
                 {/* Размер текста */}
@@ -380,6 +379,9 @@ export default function EditArticle() {
                     <span><Image className="h-4 w-4 mr-1" />{uploading ? '...' : 'Фото'}</span>
                   </Button>
                 </label>
+                <Button type="button" variant="ghost" size="sm" onClick={handleFAQ} className="h-8 px-2 text-purple-400" title="Вставить FAQ блок">
+                  <HelpCircle className="h-4 w-4 mr-1" />FAQ
+                </Button>
               </div>
 
               <Textarea ref={textareaRef} value={content} onChange={(e) => setContent(e.target.value)} className="min-h-[400px] bg-slate-800 border-slate-700 font-mono" />
