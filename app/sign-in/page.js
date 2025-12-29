@@ -72,13 +72,13 @@ export default function SignInPage() {
       clearTimeout(timeout)
       toast.success('Вход выполнен!')
 
-      // Перенаправление через router для лучшей совместимости
+      // Перенаправление через window.location для надёжности
       if (profile?.role === 'admin') {
-        router.push('/admin')
+        window.location.href = '/admin'
       } else if (profile?.approved) {
-        router.push('/articles')
+        window.location.href = '/articles'
       } else {
-        router.push('/pending-approval')
+        window.location.href = '/pending-approval'
       }
 
     } catch (error) {
