@@ -181,7 +181,11 @@ export default function EditArticle() {
     if (!textarea) return
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
-    const selectedText = content.substring(start, end) || 'текст'
+    let selectedText = content.substring(start, end) || 'текст'
+    
+    // Убираем существующий span с размером, если он есть
+    selectedText = selectedText.replace(/<span style="font-size:[^"]*">([^<]*)<\/span>/gi, '$1')
+    
     const sizedText = `<span style="font-size: ${size}">${selectedText}</span>`
     const newContent = content.substring(0, start) + sizedText + content.substring(end)
     setContent(newContent)
