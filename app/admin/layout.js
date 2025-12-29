@@ -57,7 +57,6 @@ export default function AdminLayout({ children }) {
   const router = useRouter()
   const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
-  const [checkingAccess, setCheckingAccess] = useState(true)
   const t = translations[language] || translations.ru
 
   useEffect(() => {
@@ -65,18 +64,11 @@ export default function AdminLayout({ children }) {
   }, [])
 
   useEffect(() => {
-    // Даём 3 секунды на загрузку, потом всё равно проверяем
-    const timeout = setTimeout(() => {
-      setCheckingAccess(false)
-    }, 3000)
-
-    if (!loading) {
-      setCheckingAccess(false)
-      clearTimeout(timeout)
+    // Быстрая проверка - если загрузка завершена и не админ, редирект
+    if (!loading && !isAdmin) {
+      router.push('/')
     }
-
-    return () => clearTimeout(timeout)
-  }, [loading])
+  }, [loading, isAdmin, router])
 
   useEffect(() => {
     if (!checkingAccess && !loading && !isAdmin) {
