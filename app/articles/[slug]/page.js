@@ -129,6 +129,19 @@ export default function ArticlePage() {
   const [loading, setLoading] = useState(true)
   const [translating, setTranslating] = useState(false)
   const [currentLang, setCurrentLang] = useState('ru')
+  const [zoomedImage, setZoomedImage] = useState(null)
+  
+  // Обработчик клика по изображениям для увеличения
+  useEffect(() => {
+    const handleImageClick = (e) => {
+      if (e.target.tagName === 'IMG' && e.target.dataset.zoomable === 'true') {
+        setZoomedImage(e.target.src)
+      }
+    }
+    
+    document.addEventListener('click', handleImageClick)
+    return () => document.removeEventListener('click', handleImageClick)
+  }, [])
   
   // Получаем язык из localStorage
   useEffect(() => {
