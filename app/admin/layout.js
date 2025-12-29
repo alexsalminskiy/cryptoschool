@@ -70,13 +70,6 @@ export default function AdminLayout({ children }) {
     }
   }, [loading, isAdmin, router])
 
-  useEffect(() => {
-    if (!checkingAccess && !loading && !isAdmin) {
-      console.log('Not admin, redirecting...', { user: !!user, profile, isAdmin })
-      router.push('/')
-    }
-  }, [isAdmin, loading, checkingAccess, router, user, profile])
-
   const handleSignOut = async (e) => {
     e.preventDefault()
     e.stopPropagation()
@@ -84,12 +77,12 @@ export default function AdminLayout({ children }) {
     await signOut()
   }
 
-  if (loading || checkingAccess) {
+  if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-purple-400 mx-auto mb-4" />
-          <p className="text-slate-400 text-sm">Проверка доступа...</p>
+          <p className="text-slate-400 text-sm">Загрузка...</p>
         </div>
       </div>
     )
