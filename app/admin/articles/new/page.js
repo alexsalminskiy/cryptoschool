@@ -197,8 +197,8 @@ export default function NewArticle() {
       const data = await response.json()
       
       if (data.url) {
-        const imgName = file.name.replace(/\.[^/.]+$/, '')
-        insertAtCursor(`\n\n![${imgName}](${data.url})\n\n`)
+        // Вставляем изображение без названия файла
+        insertAtCursor(`\n\n![](${data.url})\n\n`)
         toast.success('Изображение добавлено')
       }
     } catch (error) {
