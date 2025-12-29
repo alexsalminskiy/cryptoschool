@@ -1,156 +1,153 @@
 <analysis>
-<original_problem_statement>
-Initial user request (in Russian): Create a full-featured modern web application - a cryptocurrency learning platform (Crypto Academy) with the following requirements:
 
-**Tech Stack:**
-- Next.js 14+ (app router)
-- TypeScript
-- Tailwind CSS + shadcn/ui components
-- Supabase (authentication + postgres database + storage for images)
-- lucide-react for icons
+**original_problem_statement**: Initial user request: Create a full-featured modern web application - a cryptocurrency learning platform (Crypto Academy) using Next.js, TypeScript, Tailwind CSS, shadcn/ui, and Supabase.
 
 **Functional Requirements:**
-1.  **Authentication:**
-    - Email + password only (no OAuth initially).
-    - Pages: /sign-up, /sign-in, /forgot-password.
-    - User can log in immediately after registration (disable email confirmation for now).
-2.  **User Roles:**
-    - : Can only view content.
-    - : Full access to the admin panel. Role stored in  table.
-3.  **Site Structure (Public Part):**
-    - : Landing page + 6-8 recent articles.
-    - : List of all published articles.
-    - : Article detail page with cover image, markdown content, etc.
-    - Dark/light theme switcher.
-    - Modern crypto design (dark, neon, purple/blue).
-4.  **Admin Panel () - Admin role only:**
-    - : Dashboard with stats.
-    - : Table of all articles.
-    - : Create a new article.
-    - : Edit an article.
-    - **Article Editor Features:** Title, auto-generated slug, category selection, cover image upload, advanced Markdown editor with image upload into the text.
-5.  **Technical Details:**
-    - Middleware for route protection.
-    - Supabase for data storage.
+- **Authentication:** Email/password login, sign-up, forgot-password pages. Admin approval required for new users.
+- **User Roles:**  (read-only) and  (full access).
+- **Public Site:** Landing page, articles list (), and article detail pages ().
+- **Admin Panel:** Dashboard, article management (CRUD), and user management (CRUD, approval, role changes).
+- **Article Editor:** Must support title, slug, category, cover image, and a Markdown editor with image/FAQ insertion.
+- **Technical:** Middleware for route protection, dark/light theme.
 
-**Subsequent user requests added during the session:**
-- Articles should only be accessible after logging in.
-- New users require admin approval before they can access the site.
-- The admin panel must have a section to approve/manage users.
-- The registration form must include fields for First Name, Last Name, and Patronymic (ФИО).
-- The Start Learning button on the homepage should lead to the registration page.
-- The article editor should be simple and allow for easy insertion of images into the article's body.
-</original_problem_statement>
+**Subsequent user requests during this session:**
+- Change FAQ icons to plus/minus.
+- Add an FAQ button to the article editor.
+- Perform a full test of the application.
+- Fix a bug where only the first of multiple FAQ blocks was saved.
+- Fix a bug where articles wouldn't translate.
+- Hide publication date and view count from users.
+- Fix several markdown rendering issues (bold, italic, color).
+- Fix a critical bug where changing text color/size in the editor didn't save. This was a deep-seated caching issue.
+- Fix multiple regressions where the admin panel and login page would hang.
+- Fix incorrect stats on the admin dashboard (another caching issue).
+- Create a separate page for managing administrators.
+- Remove the ability to make a regular user an admin from the main user management page.
+- Add a user deletion function to the new admin management page.
+- Fix multiple critical post-deployment crashes related to context providers and browser compatibility (Safari).
 
 **User's preferred language**: русский (Russian)
 
 **what currently exists?**
-A Next.js 14 application connected to a Supabase backend. The application has user authentication (sign-up, sign-in) with a mandatory admin approval flow. An admin panel exists with sections for managing users and articles. The basic structure for creating, editing, and viewing articles is in place. However, the core functionality for the admin (content creation) is buggy, slow, and does not meet user experience expectations.
+The application is a Next.js 14 web app using Supabase as the backend. It features user authentication, user management, article CRUD, and an admin panel.
+
+This session was a turbulent cycle of bug fixing and feature implementation. The agent implemented several user requests: changing FAQ icons, adding an FAQ insertion tool to the article editor, creating a dedicated admin management panel, and refining user role permissions.
+
+However, the main focus was on stability. The agent debugged and fixed a series of critical, recurring, and post-deployment bugs:
+- **Regressions:** The login page and admin panel repeatedly started hanging, requiring fixes.
+- **Caching:** A major underlying issue was discovered and fixed: Next.js was caching API route responses, causing saved article edits and dashboard statistics to not appear. This was solved by adding  to the affected API routes.
+- **Critical Crashes:** After a simulated deployment, the agent fixed three distinct critical client-side crashes that were not caught by  tests: one due to an unhandled error in , another from a component trying to use the context before it was available, and a third caused by a JavaScript  feature incompatible with Safari.
+
+Despite these fixes, the login process is once again failing, and the original critical security vulnerabilities (disabled RLS and middleware) from the previous session remain unaddressed.
 
 **Last working item**:
-    - Last item agent was working: The agent was addressing a batch of user requests:
-        1. Hiding the Articles link for non-logged-in users.
-        2. Linking the homepage CTA to the sign-up page.
-        3. Adding First Name, Last Name, and Patronymic fields to the registration form and database.
-        4. Fixing a buggy logout button in the admin panel.
-        The agent implemented these changes, but the user's immediate next message revealed that core functionalities like publishing articles and performance are still severely broken.
+    - Last item agent was working: Debugging a recurring issue where the user is unable to log in. The page hangs in a loading state and then shows a timeout error. The agent has verified that user accounts exist in the database and was in the process of adding more detailed logging to the  file to capture the specific error message returned by Supabase during the sign-in attempt.
     - Status: IN PROGRESS
-    - Agent Testing Done: Y (but only with basic  commands, which were insufficient)
-    - Which testing method agent to use? both. The frontend needs to be tested for UI/UX and functionality, especially the article editor. The backend needs to be tested to confirm article publishing works.
-    - User Testing Done: Y (User has tested and found major issues)
+    - Agent Testing Done: N
+    - Which testing method agent to use? Manual testing. The next agent should complete the addition of logging, then attempt to log in with valid and invalid credentials to observe the console output in the browser's developer tools.
+    - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  - Issue 1: The Article Editor is unusable and the primary source of user frustration. (P0)
-  - Issue 2: Application-wide performance is very poor. (P0)
-  - Issue 3: Logout button in the admin panel was reported as buggy. (P1)
+  - Issue 1: Login is not working (P0 - CRITICAL)
+  - Issue 2: Major Security Vulnerabilities (P0 - CRITICAL)
+  - Issue 3: Incomplete User Deletion Logic (P1)
+  - Issue 4: Application Performance and Stability (P2)
   
   Issues Detail:
   - Issue 1: 
-     - Description: The article editor is the most critical broken feature.
-        1.  **Articles do not get published:** The user reported creating an article, but it never appeared on the site.
-        2.  **Confusing image insertion:** The user cannot figure out how to insert images *within the article text*. They want a simple button for this. The current implementation only supports a cover image.
-     - Attempted fixes: The agent focused on fixing compilation errors (duplicate  functions) within the editor files but did not address the core publishing or image insertion logic.
+     - Description: Users cannot log in. The sign-in page hangs and eventually times out. This is a recurring regression. The previous fixes (increasing timeout, making the UI more robust) were insufficient as the root cause from Supabase was not identified.
+     - Attempted fixes: The agent rewrote  to be more robust with a  block and a longer timeout. The last action was to start adding more detailed logging to capture the actual error from the Supabase client.
      - Next debug checklist:
-        -  File:  and .
-        -  Check the  function to trace why  is not working as expected. Verify the data sent to the Supabase API.
-        -  Check the Supabase API call and RLS policies for the  table to ensure the  or  is permitted.
-        -  Modify the editor to include a button that triggers the image upload flow () and inserts the returned image URL into the markdown content at the cursor's position.
-     - Why fix this issue and what will be achieved with the fix? This is the core purpose of the application for the admin user. Fixing it will unblock content creation.
+        1.  Finalize adding  inside the  block of the  function in .
+        2.  Attempt to log in and check the browser's developer console for the detailed error object from Supabase.
+        3.  The error could be related to Email not confirmed, invalid credentials, or a Supabase-side configuration issue (e.g., rate-limiting).
+        4.  Fix the underlying cause based on the error message.
+     - Why fix this issue and what will be achieved with the fix? The app is unusable without a working login.
+     - Status:  IN PROGRESS
+     - Is recurring issue? Y
+     - Should Test frontend/backend/both after fix? Frontend
+     - Blocked on other issue: None. This is the top priority.
+
+  - Issue 2: 
+     - Description: Row Level Security (RLS) is disabled for the  and  tables. The server-side  for protecting  routes is also disabled/non-functional. This is a critical security flaw that has persisted across multiple sessions.
+     - Attempted fixes: None. This was intentionally done in a previous session for debugging and never reverted.
+     - Next debug checklist:
+        1.  Re-enable RLS for the  and  tables in the Supabase dashboard.
+        2.  Test all CRUD operations to ensure they still work. This will likely require creating and using a  Supabase client in the API routes for operations that need to bypass RLS.
+        3.  Review and fix  to properly protect all  routes.
+     - Why fix this issue and what will be achieved with the fix? To secure the application's data and prevent unauthorized access. This is mandatory.
      - Status:  NOT STARTED
      - Is recurring issue? Y
      - Should Test frontend/backend/both after fix? both
-     - Blocked on other issue: Blocked on Issue 2: Application-wide performance is very poor as the slowness makes debugging difficult.
-
-  - Issue 2:
-     - Description: The user consistently reports that pages, especially in the admin panel, are very slow and think for a long time.
-     - Attempted fixes: The agent identified that the markdown editor () was heavy. It attempted to optimize by adding  and loading states. This was ineffective.
-     - Next debug checklist:
-        -  File:  and .
-        -  **Replace the editor**: The current editor is the likely culprit. Replace  with a lighter-weight solution. A simple  with a separate preview component, or a more modern headless editor, would be better.
-        -  Use Next.js dynamic imports with  for the editor component to ensure it's only loaded on the client-side and doesn't impact server performance. 
-        -  Analyze network tab in browser devtools to check for large component bundles.
-     - Why fix this issue and what will be achieved with the fix? Improves user experience dramatically and makes the application usable.
-     - Status:  IN PROGRESS
-     - Is recurring issue? Y
-     - Should Test frontend/backend/both after fix? frontend
-     - Blocked on other issue: None.
+     - Blocked on other issue: None. Should be addressed immediately after the login bug.
 
   - Issue 3:
-     - Description: The user reported the admin logout button took 5 clicks to work.
-     - Attempted fixes: The agent changed the logout button from a dropdown menu item to a standalone button in the admin sidebar.
+     - Description: Deleting a user from the admin panel only removes their record from the  table, not from Supabase's  table. This is incomplete and prevents re-registration with the same email.
+     - Attempted fixes: None.
      - Next debug checklist:
-        -  File: .
-        -  Manually test the logout functionality to confirm the agent's fix works reliably.
-        -  Check the  function in  for any asynchronous issues or race conditions.
-     - Why fix this issue and what will be achieved with the fix? A basic but essential piece of functionality for user navigation.
-     - Status:  TESTING PENDING
+        - Modify the  handler in the user management API (likely ).
+        - Create a privileged Supabase client on the server-side using the .
+        - Use this client to call the Supabase Admin API () in addition to deleting from the  table.
+     - Why fix this issue and what will be achieved with the fix? To provide a complete user management experience for the admin.
+     - Status: NOT STARTED
      - Is recurring issue? N
-     - Should Test frontend/backend/both after fix? frontend
+     - Should Test frontend/backend/both after fix? backend
+     - Blocked on other issue: None.
+  
+  - Issue 4:
+     - Description: The application has a history of performance issues and crashes, which led to the replacement of a feature-rich editor with a basic textarea. While many specific crashes were fixed in this session, the original root cause of high memory usage was never fully diagnosed.
+     - Attempted fixes: Symptoms were fixed (e.g., caching issues, infinite loops), but the core performance has not been profiled.
+     - Next debug checklist:
+        - After fixing security and login issues, monitor application performance.
+        - Consider re-evaluating lightweight WYSIWYG editor libraries if the application proves stable.
+     - Why fix this issue and what will be achieved with the fix? To ensure long-term stability and potentially restore richer editor functionality.
+     - Status:  IN PROGRESS
+     - Is recurring issue? Y
+     - Should Test frontend/backend/both after fix? both
      - Blocked on other issue: None.
 
 **In progress Task List**:
-- None. The current focus is on fixing critical bugs.
+There are no active tasks; the current work is blocked by the Login is not working issue.
 
 **Upcoming and Future Tasks**
-Upcoming Tasks:
-- (P0) Simplify the article editor to make it more user-friendly, as requested by the user.
-- (P2) Implement the 'Forgot Password' functionality, which was part of the original request but was never built.
+ Upcoming Tasks:
+- (P1) Implement 'Forgot Password' functionality. This was in the original requirements and is still missing.
+- (P3) After ensuring app stability, investigate and implement a lightweight but more feature-rich WYSIWYG editor to replace the current textarea.
 
-Future Tasks:
-- (P3) Implement simple analytics for article views.
+ Future Tasks:
+- (P3) Implement article view analytics.
 - (P3) Implement search functionality for articles.
 - (P3) Add a comments section to articles.
 
 **Completed work in this session**
-- List of all completed tasks with file and method name:
-  - Supabase integration and database schema creation (,  tables via SQL scripts).
-  - Full application structure scaffolding (pages, layouts, components).
-  - User authentication flow (Sign-up, Sign-in) using Supabase Auth.
-  - User approval system (DB fields, admin management page, middleware logic).
-  - Admin panel for managing users and articles.
-  - Image upload for article cover images to Supabase Storage.
-  - Addition of First Name, Last Name, Patronymic fields to the user profile and registration form.
-  - Basic multi-language support setup ().
+- **Feature Implementation:**
+  - Added an FAQ insertion tool to both the new and existing article editors.
+  - Created a new, separate admin page at  for managing administrator accounts.
+  - Added functionality to delete or demote admins from the new admin page.
+  - Refined user management by removing the ability to promote regular users to admins from the  page.
 
-- Recently completed:
-  - Added F.I.O. fields to registration (, ).
-  - Modified homepage to hide Articles and link CTA to registration (, ).
-  - Refactored admin logout button ().
-  - Implemented permissive Storage RLS policies to fix image uploads ().
+- **Critical Bug Fixes:**
+  - **API Caching:** Fixed a major bug where article edits and dashboard stats were not updating because of Next.js server-side caching. Resolved by adding  to  and .
+  - **Client-Side Crashes:**
+    - Fixed a fatal crash on the article page by making the  robust against being called before it's initialized.
+    - Fixed a Safari-specific crash by replacing an incompatible  (negative lookbehind) in the markdown parser.
+  - **Regressions:**
+    - Fixed recurring issues where the admin panel and login page would hang indefinitely.
+    - Fixed a bug where article translation stopped working.
+
+- **Bug Fixes & UI/UX:**
+  - Changed FAQ expand/collapse icons to plus/minus symbols.
+  - Fixed a bug where only the first of multiple FAQ blocks in an article would be rendered.
+  - Fixed the markdown parser to correctly handle complex nested formatting (e.g., bold text inside a colored span).
+  - Removed publication date and view counts from the public article list view per user request.
+  - Fixed various linting errors, primarily .
 
 **Earlier issues found/mentioned but not fixed**
-   - Issue 1: Admin route security is compromised.
-     - Debug checklist:
-        - The agent disabled the server-side  check for  routes as a workaround to fix a session cookie issue.
-        - The check now happens only on the client-side in .
-        - This means the admin pages might be served to non-admin users, who would then be redirected by the client-side script, which is a security risk and can cause a flash of incorrect content.
-        - The  needs to be re-enabled and fixed to correctly handle Supabase SSR sessions. The issue was likely with how the Supabase client was being created inside the middleware. The  package should be used correctly.
-     - Why to solve this issue and what will be achieved with this? To properly secure the admin panel at the edge, preventing unauthorized access to admin API routes and pages.
-     - Should Test frontend/backend/both after fix: both
-     - Is recurring issue? Y
+- All known unfixed issues are captured in the All Pending/In progress Issue list.
 
 **Known issue recurrence from previous fork**
-  - None.
+  - **Login/Admin Panel Hanging:** This issue has recurred multiple times. While specific causes (infinite loops, caching) were fixed, the login page is once again non-functional, indicating a deeper instability or multiple failure points in the authentication flow.
+  - **Performance/Crashes:** The app has a history of performance issues. Several specific client-side crashes were fixed in this session, but the underlying stability remains a concern.
 
 **Code Architecture**
 
@@ -159,86 +156,88 @@ Future Tasks:
 - **Framework**: Next.js 14 (App Router)
 - **Backend/DB**: Supabase (PostgreSQL, Auth, Storage)
 - **Styling**: Tailwind CSS with shadcn/ui
-- **State Management**: React Context () for user authentication state.
-- **Content**:  for rendering articles.  is the current (problematic) editor.
-- **Security**: Supabase Row Level Security (RLS) is used for database access policies. Middleware was intended for route protection but is currently partially disabled.
+- **State Management**: React Context (, )
+- **Data Fetching & Caching**: The agent fixed major bugs caused by Next.js's default static caching of API routes. The solution was to use  to force dynamic rendering for specific API endpoints.
+- **Cross-Browser Compatibility**: Encountered and fixed a crash in Safari by replacing a modern  feature (negative lookbehind) with a more widely supported alternative.
 
 **key DB schema**
-  - : {uid=0(root) gid=0(root) groups=0(root) (UUID, PK, fk->auth.users.id),  (TEXT),  (TEXT, 'user'|'admin'),  (BOOLEAN),  (TEXT),  (TEXT),  (TEXT), ...}
-  - : {uid=0(root) gid=0(root) groups=0(root) (UUID, PK),  (TEXT),  (TEXT, UNIQUE),  (TEXT),  (TEXT),  (TEXT),  (TEXT, 'draft'|'published'), ...}
-  - : Stores uploaded images in the  bucket.
+  - : {uid=0(root) gid=0(root) groups=0(root), , , , ...}
+  - : {uid=0(root) gid=0(root) groups=0(root), , , , ...}
 
 **changes in tech stack**
-  - The project started with a  but MongoDB was never used. The entire backend is built on Supabase/Postgres.
+- No changes to the core tech stack.
 
 **All files of reference**
-- : The source of performance and usability issues with the article editor.
-- : Security logic for route protection, currently compromised as the admin check is disabled.
-- : Core logic for managing user state on the client side.
-- : Backend logic for handling image uploads.
-- : SQL script to add new fields to the  table. Must be run if the DB is reset.
-- : SQL script to fix storage permissions. Must be run if the storage policies are reset.
+- : The location of the current **P0 bug**. Needs immediate attention.
+- : Was the source of a critical crash. The fix here (returning a default value instead of throwing an error) is a key pattern to remember.
+-  & : These files were fixed by adding . This is a critical concept for this application's architecture.
+- : This file's markdown parser was heavily refactored to fix rendering and cross-browser compatibility bugs.
+- : This file is a critical, unaddressed security vulnerability.
 
 **Areas that need refactoring**:
-- **Article Editor**: The files  and  need a complete overhaul. The current markdown editor should be replaced with a lighter, more performant alternative.
-- **Middleware**:  must be fixed to correctly handle Supabase SSR sessions and re-enable server-side protection for  routes.
-- **Code Generation Bugs**: The agent repeatedly injected a faulty  at the end of multiple files. While these instances were removed, the underlying issue with the agent's generation process remains a risk. The codebase should be considered potentially tainted with similar hidden bugs.
+- **Security Model**: The highest priority after fixing the login. RLS and the admin middleware must be re-enabled and properly configured.
+- **Authentication Flow**: The  page and  have been a recurring source of bugs. They need a thorough review and stabilization.
+- **User Deletion**: The backend logic for user deletion is incomplete.
 
 **key api endpoints**
-- : For uploading images. Currently used for the article cover image.
+- : Saves article updates.
+- : Retrieves a single article (caching was disabled here).
+- : Retrieves dashboard statistics (caching was disabled here).
+- : Creates a new user.
+- : Deletes a user (logic is incomplete).
+- : Translates text.
 
 **Critical Info for New Agent**
-- **User Frustration**: The user is frustrated with the slow performance and buggy core features. They have asked the agent to test thoroughly before delivering.
-- **Top Priority**: Your immediate focus must be on fixing the article editor's performance and functionality (publishing and inline image insertion). The user is completely blocked without this.
-- **Admin Security Workaround**: Be aware that the previous agent disabled server-side middleware protection for admin routes (). This was a temporary fix and needs to be addressed properly to secure the application.
-- **Supabase Credentials**: The required Supabase keys (, ) are in .
+- **TOP PRIORITY IS THE LOGIN BUG**: The application is currently unusable because login is broken. Your first task is to finish debugging  to identify and fix the root cause.
+- **SECURITY IS BROKEN**: Your second priority MUST be to fix the security vulnerabilities. **RLS is disabled** and the **admin middleware is non-functional**. Do not get sidetracked by other feature requests until this is addressed.
+- **BEWARE OF CACHING**: The agent spent significant time debugging issues that were ultimately caused by Next.js API route caching. If data seems stale after an update, immediately suspect caching and check if  is needed on the relevant  endpoint.
+- **TESTING MUST INCLUDE THE BROWSER**: Several critical crashes were client-side only and were missed by  tests. After making changes, do not assume a  from  means everything works. A more thorough testing approach is needed, even if it's just manual browser testing.
+- **REGRESSIONS ARE COMMON**: Be aware that login and admin panel stability issues have recurred. When fixing them, try to identify the absolute root cause rather than applying a surface-level fix.
 
 **documents created in this job**
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
+- No new documents were created.
 
 **Last 10 User Messages and any pending HUMAN messages** 
-1. : **(Pending)** User reports that creating an article fails, pages are very slow, and they don't know how to insert images into the text.
-2. : **(Partially Addressed)** User requested UI changes on the homepage, F.I.O. fields in registration, and a fix for the logout button. The agent implemented these, but the core issues from the next message persist.
-3. : **(In Progress)** User confirms image upload works but reports that the UI is extremely slow.
-4. : **(Addressed)** User reported an error uploading a photo and requested support for all formats. The agent fixed the RLS policy and improved the upload handler.
-5. : **(Critical Feedback)** User is frustrated after encountering an error and demands the agent test thoroughly before claiming a fix is complete.
-6. : **(Addressed)** User confirmed the admin panel works and requested a design improvement for the sidebar.
-7. : **(Addressed)** User is frustrated with the admin panel access issue and asks the agent to debug it independently. This led to the agent finding the root cause of session loss and disabling the middleware.
-8. : **(Addressed)** User reports that even after clearing cache, the admin panel is not accessible.
-9. : **(Addressed)** User reports that clicking the Admin Panel link in the dropdown menu does nothing.
-10. : **(Addressed)** User shows a screenshot of the dropdown menu that appears when clicking their email, which contains the Admin Panel link.
+1.  **не работает (doesn't work) (Pending - Login Bug)**: User reporting the login page is still broken after the agent's last fix.
+2.  **проблема не решена (problem not solved) (Pending - Login Bug)**: User reporting the login hangs and shows a timeout error.
+3.  **опять проблема со входом грузит (again a problem with login, it's loading) (In Progress - Login Bug)**: User reported the login hanging regression.
+4.  **и так еще опубликованную статью не переводит... (and also a published article doesn't translate...) (Completed)**: User reported the translation regression.
+5.  **ошибка не решена (problem not solved) (Completed - Safari Crash)**: User reported the Safari-specific regex crash.
+6.  **проблема не решена !!!!!!!!!!!!! (problem not solved !!!!!!!!!!!!!) (Completed - Context Crash)**: User emphatically reported the crash still happening after the first fix.
+7.  **...почему появилась ошибка после деплоя ? (why did an error appear after deploy?) (Completed - Context Crash)**: User asked why testing missed the critical crash.
+8.  **...ошибка у пользователа когда он открывает статью (error for user when they open an article) (Completed - Context Crash)**: User reported the first critical post-deployment crash.
+9.  **будем деплоить (let's deploy) (Completed)**: User gave the final go-ahead for deployment.
+10. **Ты уверен что можно деплоить ? (Are you sure it can be deployed?) (Completed)**: User asked for final confirmation before deploying.
 
 **Project Health Check:**
 - **Broken**:
-    - Article creation/publishing workflow.
-    - Application performance, especially in the admin panel.
-- **Mocked**:
-    - None.
+    - **Login**: The sign-in page is non-functional, preventing all user access. This is a P0 showstopper.
+    - **Security**: Row Level Security is disabled for core tables. This is a critical vulnerability.
+    - **Security**: The  route protection via  is non-functional.
+    - **User Deletion**: The user deletion feature is incomplete, leaving orphaned auth users.
 
 **3rd Party Integrations**
-- Supabase: Used for Authentication, PostgreSQL Database, and Storage.
+- **Supabase**: Authentication, PostgreSQL Database, Storage.
+- **Google Translate API** (via ): Used for real-time article translation.
 
 **Testing status**
   - Testing agent used after significant changes: NO
-  - Troubleshoot agent used after agent stuck in loop: YES (implicitly, by debugging user-reported issues)
+  - Troubleshoot agent used after agent stuck in loop: NO
   - Test files created: None.
   - Known regressions:
-    - Severe performance degradation in the admin panel.
-    - Disabled server-side security middleware for admin routes.
+    - **Login Flow:** Has failed multiple times and is currently broken.
+    - **Admin Panel Performance:** This has been an issue in the past and required fixes.
 
 **Credentials to test flow:**
-- **Admin User**: 
-- **Password**: Known by the user. You will need to register a new user or ask the user for the password to test the admin flow.
+- Login is currently broken.
+- To test admin functionality once login is fixed, a new agent must:
+    1. Register a new user via the  page.
+    2. Manually access the Supabase dashboard.
+    3. In the  table, find the new user and set their  to  and  to .
+    4. Log in with this new admin user.
 
 **What agent forgot to execute**
-- The agent did not implement the Forgot Password page, which was part of the initial problem statement.
-- The agent failed to adequately test the core user journey (creating and publishing an article) from an end-to-end perspective, leading to user frustration.
+- **Forgot Password Page**: Part of the original problem statement, but this feature has still not been implemented.
+- **Security Hardening**: The agent has consistently postponed re-enabling RLS and fixing  across multiple sessions, leaving the application in a vulnerable state. This is the most critical oversight.
+
 </analysis>
