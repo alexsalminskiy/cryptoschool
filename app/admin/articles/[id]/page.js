@@ -169,9 +169,17 @@ export default function EditArticle() {
     }
   }
 
-  // Цвет текста
+  // Цвет текста - получаем выделение прямо в момент выбора цвета
   const handleColorSelect = (color) => {
-    const { start, end } = selectionRef.current
+    const textarea = textareaRef.current
+    if (!textarea) {
+      toast.error('Ошибка: редактор не найден')
+      setShowColorPicker(false)
+      return
+    }
+    
+    const start = selectionRef.current.start
+    const end = selectionRef.current.end
     let selectedText = content.substring(start, end)
     
     if (!selectedText || start === end) {
@@ -180,19 +188,16 @@ export default function EditArticle() {
       return
     }
     
-    // Убираем существующий span с цветом, если он есть (поддержка любого содержимого)
+    // Убираем существующий span с цветом, если он есть
     selectedText = selectedText.replace(/<span style="color:[^"]*">([\s\S]*?)<\/span>/gi, '$1')
     
     const coloredText = `<span style="color: ${color}">${selectedText}</span>`
     const newContent = content.substring(0, start) + coloredText + content.substring(end)
     setContent(newContent)
     setShowColorPicker(false)
-    toast.success('Цвет применён')
+    toast.success(`Цвет ${color} применён к "${selectedText.substring(0, 20)}..."`)
     
-    const textarea = textareaRef.current
-    if (textarea) {
-      setTimeout(() => textarea.focus(), 0)
-    }
+    setTimeout(() => textarea.focus(), 0)
   }
 
   // Размер текста
