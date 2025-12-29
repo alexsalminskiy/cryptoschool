@@ -77,7 +77,6 @@ export async function POST(request) {
       } else {
         // Для длинных текстов - разбиваем на части
         const chunks = splitTextIntoChunks(text, 2000)
-        console.log(`Translating ${chunks.length} chunks, sizes:`, chunks.map(c => c.length))
         
         const translatedChunks = []
         
