@@ -169,26 +169,9 @@ export default function EditArticle() {
     }
   }
 
-  // Сохранить текущее выделение
-  const saveSelection = () => {
-    const textarea = textareaRef.current
-    if (textarea) {
-      const sel = {
-        start: textarea.selectionStart,
-        end: textarea.selectionEnd
-      }
-      setSavedSelection(sel)
-      // Показываем что выделено для отладки
-      const text = content.substring(sel.start, sel.end)
-      if (text) {
-        toast.info(`Выделено ${text.length} символов`)
-      }
-    }
-  }
-
   // Цвет текста
   const handleColorSelect = (color) => {
-    const { start, end } = savedSelection
+    const { start, end } = selectionRef.current
     let selectedText = content.substring(start, end)
     
     if (!selectedText || start === end) {
