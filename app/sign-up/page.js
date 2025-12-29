@@ -141,7 +141,7 @@ export default function SignUpPage() {
                   <Input
                     id="lastName"
                     type="text"
-                    placeholder="Иванов"
+                    placeholder=""
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     required
@@ -153,7 +153,7 @@ export default function SignUpPage() {
                   <Input
                     id="firstName"
                     type="text"
-                    placeholder="Иван"
+                    placeholder=""
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     required
@@ -166,7 +166,7 @@ export default function SignUpPage() {
                 <Input
                   id="middleName"
                   type="text"
-                  placeholder="Иванович"
+                  placeholder=""
                   value={middleName}
                   onChange={(e) => setMiddleName(e.target.value)}
                   className="bg-background border-border h-11"
