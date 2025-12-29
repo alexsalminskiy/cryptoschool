@@ -162,10 +162,16 @@ export default function EditArticle() {
   const saveSelection = () => {
     const textarea = textareaRef.current
     if (textarea) {
-      setSavedSelection({
+      const sel = {
         start: textarea.selectionStart,
         end: textarea.selectionEnd
-      })
+      }
+      setSavedSelection(sel)
+      // Показываем что выделено для отладки
+      const text = content.substring(sel.start, sel.end)
+      if (text) {
+        toast.info(`Выделено ${text.length} символов`)
+      }
     }
   }
 
@@ -174,19 +180,20 @@ export default function EditArticle() {
     const { start, end } = savedSelection
     let selectedText = content.substring(start, end)
     
-    if (!selectedText) {
-      toast.error('Сначала выделите текст')
+    if (!selectedText || start === end) {
+      toast.error('Сначала выделите текст в редакторе')
       setShowColorPicker(false)
       return
     }
     
-    // Убираем существующий span с цветом, если он есть
-    selectedText = selectedText.replace(/<span style="color:[^"]*">([^<]*)<\/span>/gi, '$1')
+    // Убираем существующий span с цветом, если он есть (поддержка любого содержимого)
+    selectedText = selectedText.replace(/<span style="color:[^"]*">([\s\S]*?)<\/span>/gi, '$1')
     
     const coloredText = `<span style="color: ${color}">${selectedText}</span>`
     const newContent = content.substring(0, start) + coloredText + content.substring(end)
     setContent(newContent)
     setShowColorPicker(false)
+    toast.success('Цвет применён')
     
     const textarea = textareaRef.current
     if (textarea) {
