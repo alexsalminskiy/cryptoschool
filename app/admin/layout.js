@@ -52,7 +52,9 @@ const languages = [
 
 export default function AdminLayout({ children }) {
   const { isAdmin, loading, user, profile, signOut, signingOut } = useAuth()
-  const { language, setLanguage } = useLanguage()
+  const languageContext = useLanguage()
+  const language = languageContext?.language || 'ru'
+  const setLanguage = languageContext?.setLanguage || (() => {})
   const { resolvedTheme, setTheme } = useTheme()
   const router = useRouter()
   const pathname = usePathname()
