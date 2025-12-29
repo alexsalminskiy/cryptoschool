@@ -108,10 +108,28 @@ export default function NewArticle() {
   // Форматирование
   const handleBold = () => wrapSelection('**', '**')
   const handleItalic = () => wrapSelection('*', '*')
+  const handleUnderline = () => wrapSelection('<u>', '</u>')
+  const handleStrikethrough = () => wrapSelection('~~', '~~')
   const handleH1 = () => insertAtCursor('\n# Заголовок\n')
   const handleH2 = () => insertAtCursor('\n## Заголовок\n')
   const handleH3 = () => insertAtCursor('\n### Заголовок\n')
   const handleList = () => insertAtCursor('\n- Пункт 1\n- Пункт 2\n- Пункт 3\n')
+  const handleQuote = () => insertAtCursor('\n> Цитата\n')
+  const handleCode = () => wrapSelection('`', '`')
+  const handleLink = () => {
+    const url = prompt('Введите URL ссылки:')
+    if (url) {
+      const textarea = textareaRef.current
+      if (!textarea) return
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const selectedText = content.substring(start, end) || 'текст ссылки'
+      const linkText = `[${selectedText}](${url})`
+      const newContent = content.substring(0, start) + linkText + content.substring(end)
+      setContent(newContent)
+      setTimeout(() => textarea.focus(), 0)
+    }
+  }
 
   // Цвет текста
   const handleColorSelect = (color) => {
