@@ -74,15 +74,39 @@ function FAQItem({ question, answer }) {
 function parseMarkdown(md) {
   if (!md) return ''
   
-  // Сначала защитим HTML теги от модификации
+  // Функция для обработки markdown форматирования
+  const processFormatting = (text) => {
+    return text
+      // Жирный+курсив (должен быть первым!)
+      .replace(/\*\*\*(.+?)\*\*\*/gs, '<strong class="font-semibold"><em class="italic">$1</em></strong>')
+      // Жирный текст
+      .replace(/\*\*([^*]+?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+      // Курсив
+      .replace(/(?<![*])\*([^*\n]+?)\*(?![*])/g, '<em class="italic">$1</em>')
+      // Зачёркнутый текст
+      .replace(/~~(.+?)~~/gs, '<del class="text-slate-500 dark:text-slate-400">$1</del>')
+  }
+  
+  // Обрабатываем markdown ВНУТРИ span тегов (для цветного текста)
+  let processedMd = md.replace(/<span([^>]*)>([\s\S]*?)<\/span>/gi, (match, attrs, content) => {
+    const processedContent = processFormatting(content)
+    return `<span${attrs}>${processedContent}</span>`
+  })
+  
+  // Обрабатываем markdown ВНУТРИ u тегов (подчёркнутый текст)
+  processedMd = processedMd.replace(/<u>([\s\S]*?)<\/u>/gi, (match, content) => {
+    const processedContent = processFormatting(content)
+    return `<u>${processedContent}</u>`
+  })
+  
+  // Теперь защитим обработанные HTML теги от дальнейшей модификации
   const htmlTags = []
-  let processedMd = md.replace(/<span[^>]*>.*?<\/span>/gi, (match) => {
+  processedMd = processedMd.replace(/<span[^>]*>[\s\S]*?<\/span>/gi, (match) => {
     htmlTags.push(match)
     return `__HTML_TAG_${htmlTags.length - 1}__`
   })
   
-  // Защитим <u> теги
-  processedMd = processedMd.replace(/<u>(.*?)<\/u>/gi, (match) => {
+  processedMd = processedMd.replace(/<u>[\s\S]*?<\/u>/gi, (match) => {
     htmlTags.push(match)
     return `__HTML_TAG_${htmlTags.length - 1}__`
   })
