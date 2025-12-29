@@ -445,6 +445,9 @@ export default function NewArticle() {
                 ref={textareaRef}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
+                onSelect={handleTextareaSelect}
+                onMouseUp={handleTextareaSelect}
+                onKeyUp={handleTextareaSelect}
                 placeholder="Введите текст статьи..."
                 className="min-h-[400px] bg-slate-800 border-slate-700 font-mono"
               />
