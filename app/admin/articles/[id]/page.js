@@ -384,7 +384,7 @@ export default function EditArticle() {
                 
                 {/* Размер текста */}
                 <div className="relative">
-                  <Button type="button" variant="ghost" size="sm" onClick={() => { saveSelection(); setShowSizePicker(!showSizePicker); setShowColorPicker(false) }} className="h-8 w-8 p-0" title="Размер">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => { if (!showSizePicker) saveSelection(); setShowSizePicker(!showSizePicker); setShowColorPicker(false) }} className="h-8 w-8 p-0" title="Размер">
                     <Type className="h-4 w-4" />
                   </Button>
                   {showSizePicker && (
@@ -398,7 +398,7 @@ export default function EditArticle() {
                 
                 {/* Цвет текста */}
                 <div className="relative">
-                  <Button type="button" variant="ghost" size="sm" onClick={() => { saveSelection(); setShowColorPicker(!showColorPicker); setShowSizePicker(false) }} className="h-8 w-8 p-0" title="Цвет">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => { if (!showColorPicker) saveSelection(); setShowColorPicker(!showColorPicker); setShowSizePicker(false) }} className="h-8 w-8 p-0" title="Цвет">
                     <Palette className="h-4 w-4" />
                   </Button>
                   {showColorPicker && (
