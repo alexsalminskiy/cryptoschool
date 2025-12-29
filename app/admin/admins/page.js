@@ -255,14 +255,28 @@ export default function AdminsPage() {
                         Вы
                       </Badge>
                     ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteAdmin(admin)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <>
+                        {/* Понизить до пользователя */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDemoteAdmin(admin)}
+                          className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-900/20"
+                          title="Убрать права админа"
+                        >
+                          <UserMinus className="h-4 w-4" />
+                        </Button>
+                        {/* Удалить полностью */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteAdmin(admin)}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                          title="Удалить полностью"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>
