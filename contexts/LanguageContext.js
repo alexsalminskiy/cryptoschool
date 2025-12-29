@@ -2,12 +2,17 @@
 
 import { createContext, useContext, useState, useEffect } from 'react'
 
-const LanguageContext = createContext({})
+const LanguageContext = createContext(null)
 
 export const useLanguage = () => {
   const context = useContext(LanguageContext)
+  // Возвращаем значения по умолчанию если контекст не доступен
   if (!context) {
-    throw new Error('useLanguage must be used within LanguageProvider')
+    return {
+      language: 'ru',
+      setLanguage: () => {},
+      mounted: false
+    }
   }
   return context
 }
