@@ -120,7 +120,8 @@ function formatDate(dateStr) {
 export default function ArticlePage() {
   const params = useParams()
   const router = useRouter()
-  const { language: currentLang } = useLanguage()
+  const languageContext = useLanguage()
+  const currentLang = languageContext?.language || 'ru'
   const [article, setArticle] = useState(null)
   const [translatedContent, setTranslatedContent] = useState(null)
   const [translatedTitle, setTranslatedTitle] = useState(null)
