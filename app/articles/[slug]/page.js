@@ -268,24 +268,27 @@ export default function ArticlePage() {
     }
   }
 
-  // Парсинг FAQ из контента
+  // Парсинг FAQ из контента (поддержка нескольких FAQ блоков)
   const parseFAQ = (content) => {
     if (!content) return []
     const faqRegex = /\[FAQ\]([\s\S]*?)\[\/FAQ\]/gi
-    const faqMatch = content.match(faqRegex)
-    if (!faqMatch) return []
+    const faqMatches = content.match(faqRegex)
+    if (!faqMatches) return []
     
     const faqs = []
-    const qaPairs = faqMatch[0].match(/\[Q\](.+?)\[\/Q\]\s*\[A\]([\s\S]*?)\[\/A\]/gi)
-    if (qaPairs) {
-      qaPairs.forEach(pair => {
-        const qMatch = pair.match(/\[Q\](.+?)\[\/Q\]/i)
-        const aMatch = pair.match(/\[A\]([\s\S]*?)\[\/A\]/i)
-        if (qMatch && aMatch) {
-          faqs.push({ question: qMatch[1].trim(), answer: aMatch[1].trim() })
-        }
-      })
-    }
+    // Обрабатываем ВСЕ FAQ блоки
+    faqMatches.forEach(faqBlock => {
+      const qaPairs = faqBlock.match(/\[Q\](.+?)\[\/Q\]\s*\[A\]([\s\S]*?)\[\/A\]/gi)
+      if (qaPairs) {
+        qaPairs.forEach(pair => {
+          const qMatch = pair.match(/\[Q\](.+?)\[\/Q\]/i)
+          const aMatch = pair.match(/\[A\]([\s\S]*?)\[\/A\]/i)
+          if (qMatch && aMatch) {
+            faqs.push({ question: qMatch[1].trim(), answer: aMatch[1].trim() })
+          }
+        })
+      }
+    })
     return faqs
   }
 
