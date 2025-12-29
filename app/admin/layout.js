@@ -104,7 +104,8 @@ export default function AdminLayout({ children }) {
   const menuItems = [
     { href: '/admin', label: t.dashboard, icon: LayoutDashboard, exact: true },
     { href: '/admin/articles', label: t.articlesManagement, icon: FileText },
-    { href: '/admin/users', label: t.usersManagement, icon: Users }
+    { href: '/admin/users', label: t.usersManagement, icon: Users },
+    { href: '/admin/admins', label: 'Администраторы', icon: Shield }
   ]
 
   const isActive = (href, exact = false) => {
