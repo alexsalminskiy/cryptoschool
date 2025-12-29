@@ -26,6 +26,8 @@ export default function SignInPage() {
       return
     }
     
+    if (loading) return // Защита от двойного клика
+    
     setLoading(true)
 
     try {
@@ -36,6 +38,7 @@ export default function SignInPage() {
       })
 
       if (error) {
+        setLoading(false)
         if (error.message.includes('Invalid login')) {
           toast.error('Неверный email или пароль')
         } else if (error.message.includes('Email not confirmed')) {
@@ -43,13 +46,12 @@ export default function SignInPage() {
         } else {
           toast.error(error.message)
         }
-        setLoading(false)
         return
       }
 
       if (!data?.user) {
-        toast.error('Ошибка авторизации')
         setLoading(false)
+        toast.error('Ошибка авторизации')
         return
       }
       
@@ -72,8 +74,8 @@ export default function SignInPage() {
       }
 
     } catch (err) {
-      toast.error('Ошибка сети')
       setLoading(false)
+      toast.error('Ошибка сети. Попробуйте ещё раз.')
     }
   }
 
