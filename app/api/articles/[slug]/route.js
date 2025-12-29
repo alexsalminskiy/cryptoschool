@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
+// Отключаем кэширование
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 // GET /api/articles/[slug] - Get article by slug and increment views
 export async function GET(request, { params }) {
   try {
