@@ -69,15 +69,15 @@ export async function POST(request) {
     
     try {
       // Для коротких текстов - простой перевод
-      if (text.length < 4000) {
+      if (text.length < 2000) {
         const translated = await translateChunk(text, sourceLang, targetLangCode)
         if (translated) {
           return NextResponse.json({ translatedText: translated })
         }
       } else {
         // Для длинных текстов - разбиваем на части
-        const chunks = splitTextIntoChunks(text, 4000)
-        console.log(`Translating ${chunks.length} chunks...`)
+        const chunks = splitTextIntoChunks(text, 2000)
+        console.log(`Translating ${chunks.length} chunks, sizes:`, chunks.map(c => c.length))
         
         const translatedChunks = []
         
