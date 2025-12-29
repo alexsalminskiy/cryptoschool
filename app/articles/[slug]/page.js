@@ -77,13 +77,13 @@ function parseMarkdown(md) {
   // Сначала обрабатываем ВСЕ markdown форматирование (жирный, курсив и т.д.)
   let html = md
     // Жирный+курсив (должен быть первым!)
-    .replace(/\*\*\*([^*]+?)\*\*\*/g, '<strong class="font-semibold"><em class="italic">$1</em></strong>')
-    // Жирный текст - работает с любым содержимым включая HTML теги
-    .replace(/\*\*([^*]*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+    .replace(/\*\*\*(.+?)\*\*\*/gs, '<strong class="font-semibold"><em class="italic">$1</em></strong>')
+    // Жирный текст - работает с любым содержимым включая HTML теги (используем [\s\S] для захвата всего)
+    .replace(/\*\*([\s\S]*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
     // Курсив
     .replace(/(?<![*])\*([^*\n]+?)\*(?![*])/g, '<em class="italic">$1</em>')
     // Зачёркнутый текст
-    .replace(/~~([^~]+?)~~/g, '<del class="text-slate-500 dark:text-slate-400">$1</del>')
+    .replace(/~~([\s\S]*?)~~/g, '<del class="text-slate-500 dark:text-slate-400">$1</del>')
     // Заголовки
     .replace(/^#### (.+)$/gm, '<h4 class="text-lg font-semibold mt-6 mb-3 text-slate-900 dark:text-slate-100">$1</h4>')
     .replace(/^### (.+)$/gm, '<h3 class="text-xl font-semibold mt-8 mb-4 text-slate-900 dark:text-slate-100">$1</h3>')
