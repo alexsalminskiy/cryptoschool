@@ -154,13 +154,6 @@ export default function ArticlesPage() {
                   <CardTitle className="text-purple-300 group-hover:text-purple-200 transition-colors line-clamp-2 text-base sm:text-lg">
                     {article.title}
                   </CardTitle>
-                  <CardDescription className="text-slate-400 flex items-center justify-between text-sm">
-                    <span>{format(new Date(article.created_at), 'dd.MM.yyyy')}</span>
-                    <span className="flex items-center gap-1">
-                      <Eye className="h-3 w-3" />
-                      {article.views}
-                    </span>
-                  </CardDescription>
                 </CardHeader>
               </Card>
             </Link>
