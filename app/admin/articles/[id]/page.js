@@ -386,13 +386,31 @@ export default function EditArticle() {
                 
                 {/* Размер текста */}
                 <div className="relative">
-                  <Button type="button" variant="ghost" size="sm" onClick={() => { setShowSizePicker(!showSizePicker); setShowColorPicker(false) }} className="h-8 w-8 p-0" title="Размер">
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    onMouseDown={(e) => {
+                      e.preventDefault() // Не терять фокус с textarea
+                      const textarea = textareaRef.current
+                      if (textarea) {
+                        selectionRef.current = {
+                          start: textarea.selectionStart,
+                          end: textarea.selectionEnd
+                        }
+                      }
+                      setShowSizePicker(!showSizePicker)
+                      setShowColorPicker(false)
+                    }} 
+                    className="h-8 w-8 p-0" 
+                    title="Размер"
+                  >
                     <Type className="h-4 w-4" />
                   </Button>
                   {showSizePicker && (
                     <div className="absolute top-full left-0 mt-1 z-50 p-2 bg-slate-800 border border-slate-600 rounded-lg shadow-xl min-w-[150px]">
                       {TEXT_SIZES.map((s) => (
-                        <button key={s.size} onClick={() => handleSizeSelect(s.size)} className="w-full text-left px-3 py-1.5 hover:bg-slate-700 rounded text-sm">{s.name}</button>
+                        <button key={s.size} onMouseDown={(e) => { e.preventDefault(); handleSizeSelect(s.size) }} className="w-full text-left px-3 py-1.5 hover:bg-slate-700 rounded text-sm">{s.name}</button>
                       ))}
                     </div>
                   )}
@@ -400,14 +418,32 @@ export default function EditArticle() {
                 
                 {/* Цвет текста */}
                 <div className="relative">
-                  <Button type="button" variant="ghost" size="sm" onClick={() => { setShowColorPicker(!showColorPicker); setShowSizePicker(false) }} className="h-8 w-8 p-0" title="Цвет">
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    onMouseDown={(e) => {
+                      e.preventDefault() // Не терять фокус с textarea
+                      const textarea = textareaRef.current
+                      if (textarea) {
+                        selectionRef.current = {
+                          start: textarea.selectionStart,
+                          end: textarea.selectionEnd
+                        }
+                      }
+                      setShowColorPicker(!showColorPicker)
+                      setShowSizePicker(false)
+                    }} 
+                    className="h-8 w-8 p-0" 
+                    title="Цвет"
+                  >
                     <Palette className="h-4 w-4" />
                   </Button>
                   {showColorPicker && (
                     <div className="absolute top-full left-0 mt-1 z-50 p-2 bg-slate-800 border border-slate-600 rounded-lg shadow-xl">
                       <div className="flex gap-1">
                         {TEXT_COLORS.map((c) => (
-                          <button key={c.color} onClick={() => handleColorSelect(c.color)} className="w-6 h-6 rounded-full hover:scale-110 transition-transform" style={{ backgroundColor: c.color }} title={c.name} />
+                          <button key={c.color} onMouseDown={(e) => { e.preventDefault(); handleColorSelect(c.color) }} className="w-6 h-6 rounded-full hover:scale-110 transition-transform" style={{ backgroundColor: c.color }} title={c.name} />
                         ))}
                       </div>
                     </div>
