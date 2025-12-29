@@ -116,6 +116,16 @@ export default function NewArticle() {
   const handleList = () => insertAtCursor('\n- Пункт 1\n- Пункт 2\n- Пункт 3\n')
   const handleQuote = () => insertAtCursor('\n> Цитата\n')
   const handleCode = () => wrapSelection('`', '`')
+  const handleFAQ = () => {
+    const faqTemplate = `\n[FAQ]
+[Q]Вопрос 1?[/Q]
+[A]Ответ на вопрос 1.[/A]
+
+[Q]Вопрос 2?[/Q]
+[A]Ответ на вопрос 2.[/A]
+[/FAQ]\n`
+    insertAtCursor(faqTemplate)
+  }
   const handleLink = () => {
     const url = prompt('Введите URL ссылки:')
     if (url) {
