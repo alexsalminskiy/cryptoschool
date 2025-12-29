@@ -20,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Check, X, Search, Plus, Trash2, Loader2, Edit, Shield } from 'lucide-react'
+import { Check, X, Search, Plus, Trash2, Loader2, Edit } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
