@@ -234,26 +234,6 @@ export default function UsersManagement() {
     }
   }
 
-  // Сделать админом / убрать права админа
-  const handleToggleAdmin = async (userId, currentRole) => {
-    const newRole = currentRole === 'admin' ? 'user' : 'admin'
-    
-    try {
-      const response = await fetch('/api/users', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: userId, role: newRole })
-      })
-      
-      if (!response.ok) throw new Error('Ошибка')
-      
-      toast.success(newRole === 'admin' ? 'Назначен админом!' : 'Права админа сняты')
-      setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u))
-    } catch (error) {
-      toast.error('Ошибка')
-    }
-  }
-
   // Фильтрация
   const filteredUsers = users.filter(u => 
     u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
