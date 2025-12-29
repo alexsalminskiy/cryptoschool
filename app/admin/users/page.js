@@ -114,7 +114,7 @@ export default function UsersManagement() {
         if (profileError) throw profileError
       }
 
-      toast.success(newUser.role === 'admin' ? 'Админ создан!' : 'Пользователь создан!')
+      toast.success('Пользователь создан!')
       setShowCreateModal(false)
       setNewUser({ email: '', password: '', firstName: '', lastName: '', middleName: '', role: 'user' })
       fetchUsers()
