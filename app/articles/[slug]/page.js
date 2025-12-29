@@ -134,12 +134,12 @@ function formatDate(dateStr) {
 export default function ArticlePage() {
   const params = useParams()
   const router = useRouter()
+  const { language: currentLang } = useLanguage()
   const [article, setArticle] = useState(null)
   const [translatedContent, setTranslatedContent] = useState(null)
   const [translatedTitle, setTranslatedTitle] = useState(null)
   const [loading, setLoading] = useState(true)
   const [translating, setTranslating] = useState(false)
-  const [currentLang, setCurrentLang] = useState('ru')
   const [zoomedImage, setZoomedImage] = useState(null)
   
   // Обработчик клика по изображениям для увеличения
@@ -153,36 +153,6 @@ export default function ArticlePage() {
     document.addEventListener('click', handleImageClick)
     return () => document.removeEventListener('click', handleImageClick)
   }, [])
-  
-  // Получаем язык из localStorage
-  useEffect(() => {
-    const savedLang = localStorage.getItem('language') || 'ru'
-    setCurrentLang(savedLang)
-  }, [])
-  
-  // Слушаем изменения языка
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const newLang = localStorage.getItem('language') || 'ru'
-      if (newLang !== currentLang) {
-        setCurrentLang(newLang)
-      }
-    }
-    
-    window.addEventListener('storage', handleStorageChange)
-    // Проверяем каждую секунду для обнаружения изменений в той же вкладке
-    const interval = setInterval(() => {
-      const newLang = localStorage.getItem('language') || 'ru'
-      if (newLang !== currentLang) {
-        setCurrentLang(newLang)
-      }
-    }, 500)
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange)
-      clearInterval(interval)
-    }
-  }, [currentLang])
   
   const t = translations[currentLang] || translations['ru']
 
