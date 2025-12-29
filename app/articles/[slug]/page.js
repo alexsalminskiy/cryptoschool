@@ -78,10 +78,10 @@ function parseMarkdown(md) {
   let html = md
     // Жирный+курсив (должен быть первым!)
     .replace(/\*\*\*(.+?)\*\*\*/gs, '<strong class="font-semibold"><em class="italic">$1</em></strong>')
-    // Жирный текст - работает с любым содержимым включая HTML теги (используем [\s\S] для захвата всего)
+    // Жирный текст - работает с любым содержимым включая HTML теги
     .replace(/\*\*([\s\S]*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
-    // Курсив
-    .replace(/(?<![*])\*([^*\n]+?)\*(?![*])/g, '<em class="italic">$1</em>')
+    // Курсив (простой вариант без lookbehind для Safari)
+    .replace(/([^*]|^)\*([^*\n]+?)\*([^*]|$)/g, '$1<em class="italic">$2</em>$3')
     // Зачёркнутый текст
     .replace(/~~([\s\S]*?)~~/g, '<del class="text-slate-500 dark:text-slate-400">$1</del>')
     // Заголовки
