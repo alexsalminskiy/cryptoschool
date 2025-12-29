@@ -399,7 +399,7 @@ export default function NewArticle() {
                 
                 {/* Размер текста */}
                 <div className="relative">
-                  <Button type="button" variant="ghost" size="sm" onClick={() => { if (!showSizePicker) saveSelection(); setShowSizePicker(!showSizePicker); setShowColorPicker(false) }} className="h-8 w-8 p-0" title="Размер текста">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => { setShowSizePicker(!showSizePicker); setShowColorPicker(false) }} className="h-8 w-8 p-0" title="Размер текста">
                     <Type className="h-4 w-4" />
                   </Button>
                   {showSizePicker && (
@@ -415,7 +415,7 @@ export default function NewArticle() {
                 
                 {/* Цвет текста */}
                 <div className="relative">
-                  <Button type="button" variant="ghost" size="sm" onClick={() => { if (!showColorPicker) saveSelection(); setShowColorPicker(!showColorPicker); setShowSizePicker(false) }} className="h-8 w-8 p-0" title="Цвет текста">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => { setShowColorPicker(!showColorPicker); setShowSizePicker(false) }} className="h-8 w-8 p-0" title="Цвет текста">
                     <Palette className="h-4 w-4" />
                   </Button>
                   {showColorPicker && (
