@@ -340,9 +340,15 @@ export default function NewArticle() {
                 <ToolbarBtn onClick={handleH2} icon={Heading2} title="Заголовок 2" />
                 <ToolbarBtn onClick={handleH3} icon={Heading3} title="Заголовок 3" />
                 <div className="w-px h-6 bg-slate-600 mx-1" />
-                <ToolbarBtn onClick={handleBold} icon={Bold} title="Жирный" />
-                <ToolbarBtn onClick={handleItalic} icon={Italic} title="Курсив" />
+                <ToolbarBtn onClick={handleBold} icon={Bold} title="Жирный (B)" />
+                <ToolbarBtn onClick={handleItalic} icon={Italic} title="Курсив (I)" />
+                <ToolbarBtn onClick={handleUnderline} icon={Underline} title="Подчёркнутый (U)" />
+                <ToolbarBtn onClick={handleStrikethrough} icon={Strikethrough} title="Зачёркнутый (S)" />
+                <div className="w-px h-6 bg-slate-600 mx-1" />
                 <ToolbarBtn onClick={handleList} icon={List} title="Список" />
+                <ToolbarBtn onClick={handleQuote} icon={Quote} title="Цитата" />
+                <ToolbarBtn onClick={handleCode} icon={Code} title="Код" />
+                <ToolbarBtn onClick={handleLink} icon={Link2} title="Ссылка" />
                 <div className="w-px h-6 bg-slate-600 mx-1" />
                 
                 {/* Размер текста */}
