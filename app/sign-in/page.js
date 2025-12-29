@@ -30,55 +30,67 @@ export default function SignInPage() {
     }
     
     setLoading(true)
+    console.log('Attempting login for:', email.trim())
 
     try {
       // Вход в систему
+      console.log('Calling Supabase signInWithPassword...')
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password
       })
+      
+      console.log('Supabase response:', { authData: !!authData?.user, authError })
 
       if (authError) {
+        console.error('Auth error:', authError)
         if (authError.message.includes('Invalid login')) {
           toast.error('Неверный email или пароль')
         } else if (authError.message.includes('Email not confirmed')) {
           toast.error('Email не подтверждён. Проверьте почту.')
         } else {
-          toast.error(authError.message)
+          toast.error('Ошибка: ' + authError.message)
         }
         setLoading(false)
         return
       }
 
       if (!authData?.user) {
-        toast.error('Ошибка авторизации')
+        console.error('No user in authData')
+        toast.error('Ошибка авторизации - нет данных пользователя')
         setLoading(false)
         return
       }
 
+      console.log('User authenticated, fetching profile...')
+      
       // Получаем профиль пользователя
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role, approved')
         .eq('id', authData.user.id)
         .single()
+      
+      console.log('Profile:', profile, 'Error:', profileError)
+
+      if (profileError) {
+        console.error('Profile error:', profileError)
+        toast.error('Ошибка загрузки профиля')
+        setLoading(false)
+        return
+      }
 
       toast.success('Вход выполнен!')
 
-      // Перенаправление с небольшой задержкой
-      setTimeout(() => {
-        if (profile?.role === 'admin') {
-          window.location.href = '/admin'
-        } else if (profile?.approved) {
-          window.location.href = '/articles'
-        } else {
-          window.location.href = '/pending-approval'
-        }
-      }, 300)
+      // Перенаправление
+      const redirectUrl = profile?.role === 'admin' ? '/admin' : (profile?.approved ? '/articles' : '/pending-approval')
+      console.log('Redirecting to:', redirectUrl)
+      
+      window.location.href = redirectUrl
 
     } catch (error) {
       console.error('Login error:', error)
-      toast.error('Ошибка входа - попробуйте ещё раз')
+      toast.error('Ошибка входа: ' + error.message)
       setLoading(false)
     }
   }
