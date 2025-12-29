@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
+// Отключаем кэширование
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 // GET /api/stats - Get dashboard statistics
 export async function GET() {
   try {
