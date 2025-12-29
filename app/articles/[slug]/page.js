@@ -171,8 +171,10 @@ export default function ArticlePage() {
     if (!article) return
     
     setTranslating(true)
+    console.log('Starting translation to:', currentLang)
     try {
       // Переводим заголовок
+      console.log('Translating title...')
       const titleResponse = await fetch('/api/translate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -183,11 +185,13 @@ export default function ArticlePage() {
         })
       })
       const titleData = await titleResponse.json()
+      console.log('Title translation response:', titleData)
       if (titleData.translatedText) {
         setTranslatedTitle(titleData.translatedText)
       }
       
       // Переводим контент
+      console.log('Translating content, length:', article.content_md?.length)
       const contentResponse = await fetch('/api/translate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -198,13 +202,18 @@ export default function ArticlePage() {
         })
       })
       const contentData = await contentResponse.json()
+      console.log('Content translation response length:', contentData.translatedText?.length)
       if (contentData.translatedText) {
         setTranslatedContent(contentData.translatedText)
+        console.log('Content set successfully!')
+      } else {
+        console.log('No translatedText in response:', contentData)
       }
     } catch (error) {
       console.error('Translation error:', error)
     } finally {
       setTranslating(false)
+      console.log('Translation finished')
     }
   }
 
