@@ -80,6 +80,12 @@ function parseMarkdown(md) {
     return `__HTML_TAG_${htmlTags.length - 1}__`
   })
   
+  // Защитим <u> теги
+  processedMd = processedMd.replace(/<u>(.*?)<\/u>/gi, (match) => {
+    htmlTags.push(match)
+    return `__HTML_TAG_${htmlTags.length - 1}__`
+  })
+  
   let html = processedMd
     // Заголовки - чистый стиль как на cryptology.school
     .replace(/^#### (.+)$/gm, '<h4 class="text-lg font-semibold mt-6 mb-3 text-slate-900 dark:text-slate-100">$1</h4>')
@@ -89,6 +95,10 @@ function parseMarkdown(md) {
     // Жирный и курсив
     .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>')
     .replace(/\*(.+?)\*/g, '<em class="italic">$1</em>')
+    // Зачёркнутый текст
+    .replace(/~~(.+?)~~/g, '<del class="text-slate-500 dark:text-slate-400">$1</del>')
+    // Код
+    .replace(/`([^`]+)`/g, '<code class="bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-sm font-mono text-purple-600 dark:text-purple-400">$1</code>')
     // Изображения - с классом для клика
     .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<figure class="my-6"><img src="$2" alt="$1" class="rounded-lg w-full cursor-zoom-in hover:opacity-90 transition-opacity article-image" data-zoomable="true" loading="lazy" /></figure>')
     // Ссылки
