@@ -20,7 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Shield, Plus, Trash2, Loader2, Eye, EyeOff, UserCog } from 'lucide-react'
+import { Shield, Plus, Trash2, Loader2, Eye, EyeOff, UserCog, UserMinus } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
