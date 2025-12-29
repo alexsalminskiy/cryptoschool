@@ -55,9 +55,9 @@ function FAQItem({ question, answer }) {
       >
         <span className="font-medium text-foreground">{question}</span>
         {isOpen ? (
-          <ChevronUp className="h-5 w-5 text-purple-500 flex-shrink-0" />
+          <Minus className="h-5 w-5 text-purple-500 flex-shrink-0" />
         ) : (
-          <ChevronDown className="h-5 w-5 text-purple-500 flex-shrink-0" />
+          <Plus className="h-5 w-5 text-purple-500 flex-shrink-0" />
         )}
       </button>
       {isOpen && (
