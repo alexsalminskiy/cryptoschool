@@ -340,6 +340,7 @@ export default function EditArticle() {
                 <ToolbarBtn onClick={handleQuote} icon={Quote} title="Цитата" />
                 <ToolbarBtn onClick={handleCode} icon={Code} title="Код" />
                 <ToolbarBtn onClick={handleLink} icon={Link2} title="Ссылка" />
+                <ToolbarBtn onClick={handleFAQ} icon={HelpCircle} title="FAQ блок" />
                 <div className="w-px h-6 bg-slate-600 mx-1" />
                 
                 {/* Размер текста */}
