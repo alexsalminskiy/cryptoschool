@@ -30,20 +30,21 @@ export default function SignInPage() {
     }
     
     setLoading(true)
-    console.log('Attempting login for:', email.trim())
 
     try {
-      // Вход в систему
-      console.log('Calling Supabase signInWithPassword...')
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      // Вход в систему с таймаутом
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Превышено время ожидания')), 15000)
+      )
+      
+      const authPromise = supabase.auth.signInWithPassword({
         email: email.trim(),
         password
       })
       
-      console.log('Supabase response:', { authData: !!authData?.user, authError })
+      const { data: authData, error: authError } = await Promise.race([authPromise, timeoutPromise])
 
       if (authError) {
-        console.error('Auth error:', authError)
         if (authError.message.includes('Invalid login')) {
           toast.error('Неверный email или пароль')
         } else if (authError.message.includes('Email not confirmed')) {
@@ -51,18 +52,13 @@ export default function SignInPage() {
         } else {
           toast.error('Ошибка: ' + authError.message)
         }
-        setLoading(false)
         return
       }
 
       if (!authData?.user) {
-        console.error('No user in authData')
-        toast.error('Ошибка авторизации - нет данных пользователя')
-        setLoading(false)
+        toast.error('Ошибка авторизации')
         return
       }
-
-      console.log('User authenticated, fetching profile...')
       
       // Получаем профиль пользователя
       const { data: profile, error: profileError } = await supabase
@@ -70,13 +66,9 @@ export default function SignInPage() {
         .select('role, approved')
         .eq('id', authData.user.id)
         .single()
-      
-      console.log('Profile:', profile, 'Error:', profileError)
 
       if (profileError) {
-        console.error('Profile error:', profileError)
         toast.error('Ошибка загрузки профиля')
-        setLoading(false)
         return
       }
 
@@ -84,13 +76,12 @@ export default function SignInPage() {
 
       // Перенаправление
       const redirectUrl = profile?.role === 'admin' ? '/admin' : (profile?.approved ? '/articles' : '/pending-approval')
-      console.log('Redirecting to:', redirectUrl)
-      
       window.location.href = redirectUrl
 
     } catch (error) {
       console.error('Login error:', error)
-      toast.error('Ошибка входа: ' + error.message)
+      toast.error(error.message || 'Ошибка входа')
+    } finally {
       setLoading(false)
     }
   }
@@ -159,7 +150,7 @@ export default function SignInPage() {
               <p className="text-center text-sm text-muted-foreground">
                 {t.noAccount}{' '}
                 <Link href="/sign-up" className="text-purple-500 hover:text-purple-400 hover:underline">
-                  {t.signUpLink}
+                  {t.signUp}
                 </Link>
               </p>
             </CardFooter>
