@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ArrowLeft, Clock, Tag, ChevronRight, Plus, Minus, X } from 'lucide-react'
 import { translations } from '@/lib/i18n'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 // Компонент модального окна для увеличения изображений
 function ImageModal({ src, onClose }) {
