@@ -197,22 +197,23 @@ export default function EditArticle() {
 
   // Размер текста
   const handleSizeSelect = (size) => {
-    const { start, end } = savedSelection
+    const { start, end } = selectionRef.current
     let selectedText = content.substring(start, end)
     
-    if (!selectedText) {
-      toast.error('Сначала выделите текст')
+    if (!selectedText || start === end) {
+      toast.error('Сначала выделите текст в редакторе')
       setShowSizePicker(false)
       return
     }
     
     // Убираем существующий span с размером, если он есть
-    selectedText = selectedText.replace(/<span style="font-size:[^"]*">([^<]*)<\/span>/gi, '$1')
+    selectedText = selectedText.replace(/<span style="font-size:[^"]*">([\s\S]*?)<\/span>/gi, '$1')
     
     const sizedText = `<span style="font-size: ${size}">${selectedText}</span>`
     const newContent = content.substring(0, start) + sizedText + content.substring(end)
     setContent(newContent)
     setShowSizePicker(false)
+    toast.success('Размер применён')
     
     const textarea = textareaRef.current
     if (textarea) {
