@@ -61,6 +61,7 @@ export default function EditArticle() {
   const [uploading, setUploading] = useState(false)
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [showSizePicker, setShowSizePicker] = useState(false)
+  const [savedSelection, setSavedSelection] = useState({ start: 0, end: 0 })
   const [language] = useState('ru')
   const t = translations[language]
 
