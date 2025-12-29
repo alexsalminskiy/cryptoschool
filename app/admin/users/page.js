@@ -524,18 +524,6 @@ export default function UsersManagement() {
                 />
               </div>
               <div>
-                <Label>Роль</Label>
-                <Select value={editingUser.role} onValueChange={(v) => setEditingUser({...editingUser, role: v})}>
-                  <SelectTrigger className="bg-slate-800 border-slate-700 mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="user">Пользователь</SelectItem>
-                    <SelectItem value="admin">Администратор</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
                 <Label>Статус доступа</Label>
                 <Select 
                   value={editingUser.approved ? 'approved' : 'pending'} 
