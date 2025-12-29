@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,13 +12,11 @@ import { translations } from '@/lib/i18n'
 import { Loader2, Eye, EyeOff } from 'lucide-react'
 
 export default function SignInPage() {
-  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [language] = useState('ru')
-  const t = translations[language]
+  const t = translations.ru
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -32,56 +29,50 @@ export default function SignInPage() {
     setLoading(true)
 
     try {
-      // Вход в систему с таймаутом
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Превышено время ожидания')), 15000)
-      )
-      
-      const authPromise = supabase.auth.signInWithPassword({
+      // Простой вход без таймаута
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password
       })
-      
-      const { data: authData, error: authError } = await Promise.race([authPromise, timeoutPromise])
 
-      if (authError) {
-        if (authError.message.includes('Invalid login')) {
+      if (error) {
+        if (error.message.includes('Invalid login')) {
           toast.error('Неверный email или пароль')
-        } else if (authError.message.includes('Email not confirmed')) {
-          toast.error('Email не подтверждён. Проверьте почту.')
+        } else if (error.message.includes('Email not confirmed')) {
+          toast.error('Email не подтверждён')
         } else {
-          toast.error('Ошибка: ' + authError.message)
+          toast.error(error.message)
         }
+        setLoading(false)
         return
       }
 
-      if (!authData?.user) {
+      if (!data?.user) {
         toast.error('Ошибка авторизации')
+        setLoading(false)
         return
       }
       
-      // Получаем профиль пользователя
-      const { data: profile, error: profileError } = await supabase
+      // Получаем профиль
+      const { data: profile } = await supabase
         .from('profiles')
         .select('role, approved')
-        .eq('id', authData.user.id)
+        .eq('id', data.user.id)
         .single()
-
-      if (profileError) {
-        toast.error('Ошибка загрузки профиля')
-        return
-      }
 
       toast.success('Вход выполнен!')
 
-      // Перенаправление
-      const redirectUrl = profile?.role === 'admin' ? '/admin' : (profile?.approved ? '/articles' : '/pending-approval')
-      window.location.href = redirectUrl
+      // Редирект
+      if (profile?.role === 'admin') {
+        window.location.href = '/admin'
+      } else if (profile?.approved) {
+        window.location.href = '/articles'
+      } else {
+        window.location.href = '/pending-approval'
+      }
 
-    } catch (error) {
-      console.error('Login error:', error)
-      toast.error(error.message || 'Ошибка входа')
-    } finally {
+    } catch (err) {
+      toast.error('Ошибка сети')
       setLoading(false)
     }
   }
