@@ -93,11 +93,14 @@ function parseMarkdown(md) {
     .replace(/^### (.+)$/gm, '<h3 class="text-xl font-semibold mt-8 mb-4 text-slate-900 dark:text-slate-100">$1</h3>')
     .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold mt-8 mb-4 text-slate-900 dark:text-slate-100 pb-2 border-b border-slate-200 dark:border-slate-700">$1</h2>')
     .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold mt-8 mb-5 text-slate-900 dark:text-slate-100">$1</h1>')
-    // Жирный и курсив
-    .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em class="italic">$1</em>')
+    // Жирный+курсив (должен быть первым!)
+    .replace(/\*\*\*(.+?)\*\*\*/gs, '<strong class="font-semibold"><em class="italic">$1</em></strong>')
+    // Жирный текст (поддержка многострочного)
+    .replace(/\*\*([^*]+?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+    // Курсив (только одиночные звёздочки, не внутри слов)
+    .replace(/(?<![*])\*([^*\n]+?)\*(?![*])/g, '<em class="italic">$1</em>')
     // Зачёркнутый текст
-    .replace(/~~(.+?)~~/g, '<del class="text-slate-500 dark:text-slate-400">$1</del>')
+    .replace(/~~(.+?)~~/gs, '<del class="text-slate-500 dark:text-slate-400">$1</del>')
     // Код
     .replace(/`([^`]+)`/g, '<code class="bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-sm font-mono text-purple-600 dark:text-purple-400">$1</code>')
     // Изображения - с классом для клика
