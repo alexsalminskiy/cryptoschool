@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
-import { ArrowLeft, Save, Upload, Trash2, Loader2, Image, Bold, Italic, Heading1, Heading2, Heading3, List, Palette, Type, Underline, Strikethrough, Quote, Code, Link2 } from 'lucide-react'
+import { ArrowLeft, Save, Upload, Trash2, Loader2, Image, Bold, Italic, Heading1, Heading2, Heading3, List, Palette, Type, Underline, Strikethrough, Quote, Code, Link2, HelpCircle } from 'lucide-react'
 import { translations, categories } from '@/lib/i18n'
 import { toast } from 'sonner'
 
