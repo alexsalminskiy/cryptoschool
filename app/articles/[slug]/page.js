@@ -5,8 +5,43 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { ArrowLeft, Clock, Tag, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react'
+import { ArrowLeft, Clock, Tag, ChevronRight, ChevronDown, ChevronUp, X } from 'lucide-react'
 import { translations } from '@/lib/i18n'
+
+// Компонент модального окна для увеличения изображений
+function ImageModal({ src, onClose }) {
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleEsc)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', handleEsc)
+      document.body.style.overflow = ''
+    }
+  }, [onClose])
+
+  return (
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+      onClick={onClose}
+    >
+      <button 
+        onClick={onClose}
+        className="absolute top-4 right-4 p-2 text-white hover:text-gray-300 transition-colors z-50"
+      >
+        <X className="h-8 w-8" />
+      </button>
+      <img 
+        src={src} 
+        alt="" 
+        className="max-w-full max-h-[90vh] object-contain rounded-lg"
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>
+  )
+}
 
 // Компонент для FAQ секции
 function FAQItem({ question, answer }) {
@@ -54,8 +89,8 @@ function parseMarkdown(md) {
     // Жирный и курсив
     .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>')
     .replace(/\*(.+?)\*/g, '<em class="italic">$1</em>')
-    // Изображения
-    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<figure class="my-6"><img src="$2" alt="$1" class="rounded-lg w-full" loading="lazy" /><figcaption class="text-center text-sm text-slate-500 dark:text-slate-400 mt-2">$1</figcaption></figure>')
+    // Изображения - с классом для клика
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<figure class="my-6"><img src="$2" alt="$1" class="rounded-lg w-full cursor-zoom-in hover:opacity-90 transition-opacity article-image" data-zoomable="true" loading="lazy" /></figure>')
     // Ссылки
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-purple-600 dark:text-purple-400 hover:underline" target="_blank" rel="noopener">$1</a>')
     // Списки
