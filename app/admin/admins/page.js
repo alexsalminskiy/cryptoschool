@@ -125,20 +125,45 @@ export default function AdminsPage() {
     }
   }
 
+  // Понизить до пользователя (убрать права админа)
+  const handleDemoteAdmin = async (admin) => {
+    if (admin.id === profile?.id) {
+      toast.error('Нельзя убрать права у себя')
+      return
+    }
+
+    if (!confirm(`Убрать права администратора у ${admin.email}? Пользователь останется в системе.`)) return
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role: 'user' })
+        .eq('id', admin.id)
+
+      if (error) throw error
+
+      toast.success('Права администратора убраны')
+      fetchAdmins()
+    } catch (error) {
+      toast.error('Ошибка')
+      console.error(error)
+    }
+  }
+
+  // Полностью удалить администратора
   const handleDeleteAdmin = async (admin) => {
-    // Нельзя удалить самого себя
     if (admin.id === profile?.id) {
       toast.error('Нельзя удалить свой аккаунт')
       return
     }
 
-    if (!confirm(`Удалить администратора ${admin.email}?`)) return
+    if (!confirm(`ПОЛНОСТЬЮ удалить администратора ${admin.email}? Это действие нельзя отменить!`)) return
 
     try {
-      // Удаляем только из profiles (понижаем роль)
+      // Удаляем из profiles
       const { error } = await supabase
         .from('profiles')
-        .update({ role: 'user', approved: false })
+        .delete()
         .eq('id', admin.id)
 
       if (error) throw error
