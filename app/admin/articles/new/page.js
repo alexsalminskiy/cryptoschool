@@ -154,7 +154,11 @@ export default function NewArticle() {
     if (!textarea) return
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
-    const selectedText = content.substring(start, end) || 'цветной текст'
+    let selectedText = content.substring(start, end) || 'цветной текст'
+    
+    // Убираем существующий span с цветом, если он есть
+    selectedText = selectedText.replace(/<span style="color:[^"]*">([^<]*)<\/span>/gi, '$1')
+    
     const coloredText = `<span style="color: ${color}">${selectedText}</span>`
     const newContent = content.substring(0, start) + coloredText + content.substring(end)
     setContent(newContent)
@@ -168,7 +172,11 @@ export default function NewArticle() {
     if (!textarea) return
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
-    const selectedText = content.substring(start, end) || 'текст'
+    let selectedText = content.substring(start, end) || 'текст'
+    
+    // Убираем существующий span с размером, если он есть
+    selectedText = selectedText.replace(/<span style="font-size:[^"]*">([^<]*)<\/span>/gi, '$1')
+    
     const sizedText = `<span style="font-size: ${size}">${selectedText}</span>`
     const newContent = content.substring(0, start) + sizedText + content.substring(end)
     setContent(newContent)
