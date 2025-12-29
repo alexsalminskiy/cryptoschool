@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Input } from '@/components/ui/input'
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
@@ -11,9 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Eye, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { translations, categories } from '@/lib/i18n'
-import { format } from 'date-fns'
 
 export default function ArticlesPage() {
   const [articles, setArticles] = useState([])
