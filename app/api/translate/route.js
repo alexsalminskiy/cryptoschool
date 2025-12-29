@@ -28,7 +28,7 @@ async function translateChunk(text, sourceLang, targetLangCode) {
 }
 
 // Разбиваем текст на части по параграфам, сохраняя структуру
-function splitTextIntoChunks(text, maxChunkSize = 4000) {
+function splitTextIntoChunks(text, maxChunkSize = 2000) {
   const chunks = []
   const paragraphs = text.split(/(\n\n|\n(?=[#\-\*\[]))/g)
   
