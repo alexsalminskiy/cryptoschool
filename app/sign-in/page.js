@@ -5,11 +5,10 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { translations } from '@/lib/i18n'
-import { Loader2, Eye, EyeOff } from 'lucide-react'
+import { Loader2, Eye, EyeOff, ArrowRight } from 'lucide-react'
 
 export default function SignInPage() {
   const [email, setEmail] = useState('')
@@ -26,12 +25,11 @@ export default function SignInPage() {
       return
     }
     
-    if (loading) return // Защита от двойного клика
+    if (loading) return
     
     setLoading(true)
 
     try {
-      // Простой вход без таймаута
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password
@@ -55,7 +53,6 @@ export default function SignInPage() {
         return
       }
       
-      // Получаем профиль
       const { data: profile } = await supabase
         .from('profiles')
         .select('role, approved')
@@ -64,7 +61,6 @@ export default function SignInPage() {
 
       toast.success('Вход выполнен!')
 
-      // Редирект
       if (profile?.role === 'admin') {
         window.location.href = '/admin'
       } else if (profile?.approved) {
@@ -80,75 +76,88 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 sm:py-20 min-h-[calc(100vh-4rem)]">
-      <div className="mx-auto max-w-md">
-        <Card className="border-purple-900/50 bg-card/50 backdrop-blur">
-          <CardHeader className="space-y-1 px-4 sm:px-6 pt-6">
-            <CardTitle className="text-xl sm:text-2xl text-purple-500 dark:text-purple-300">{t.signInTitle}</CardTitle>
-            <CardDescription className="text-muted-foreground text-sm">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
+      {/* Background */}
+      <div className="fixed inset-0 hero-bg -z-10" />
+      <div className="fixed inset-0 grid-pattern -z-10" />
+      
+      <div className="w-full max-w-md animate-fade-in-up">
+        {/* Card */}
+        <div className="glass-card p-8 md:p-10">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">{t.signInTitle}</h1>
+            <p className="text-muted-foreground">
               Войдите в свой аккаунт
-            </CardDescription>
-          </CardHeader>
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4 px-4 sm:px-6">
-              <div className="space-y-2">
-                <Label htmlFor="email">{t.email}</Label>
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-medium">{t.email}</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="email@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-12 rounded-xl input-premium"
+                disabled={loading}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-medium">{t.password}</Label>
+              <div className="relative">
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="email@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="bg-background"
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="h-12 rounded-xl input-premium pr-12"
                   disabled={loading}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">{t.password}</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="bg-background pr-10"
-                    disabled={loading}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex flex-col space-y-4 px-4 sm:px-6 pb-6">
-              <Button 
-                type="submit" 
-                className="w-full bg-purple-600 hover:bg-purple-700"
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Вход...
-                  </>
-                ) : (
-                  t.signIn
-                )}
-              </Button>
-              <p className="text-center text-sm text-muted-foreground">
-                {t.noAccount}{' '}
-                <Link href="/sign-up" className="text-purple-500 hover:text-purple-400 hover:underline">
-                  {t.signUp}
-                </Link>
-              </p>
-            </CardFooter>
+            </div>
+
+            <Button 
+              type="submit" 
+              className="btn-premium w-full h-12 text-base text-white"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Вход...
+                </>
+              ) : (
+                <>
+                  {t.signIn}
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </>
+              )}
+            </Button>
           </form>
-        </Card>
+
+          {/* Footer */}
+          <div className="mt-8 text-center">
+            <p className="text-muted-foreground">
+              {t.noAccount}{' '}
+              <Link href="/sign-up" className="text-violet-500 hover:text-violet-400 font-medium transition-colors">
+                {t.signUp}
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )
