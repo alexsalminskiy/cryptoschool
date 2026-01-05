@@ -78,9 +78,9 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-purple-900/20 bg-background/80 backdrop-blur-xl">
-      <div className="container mx-auto px-3 sm:px-4">
-        <div className="flex h-14 sm:h-16 items-center justify-between">
+    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
+      <div className="container mx-auto px-4 sm:px-6">
+        <div className="flex h-16 sm:h-18 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center">
             <span className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
