@@ -156,9 +156,9 @@ export default function Header() {
                       variant="outline"
                       size="sm"
                       onClick={() => router.push('/admin')}
-                      className="h-9 sm:h-10 px-3 sm:px-4 rounded-full border-purple-500/50 hover:bg-purple-500/20"
+                      className="h-10 px-4 rounded-xl border-violet-500/30 hover:bg-violet-500/10 hover:border-violet-500/50 transition-all"
                     >
-                      <Settings className="h-4 w-4 mr-1 sm:mr-2" />
+                      <Settings className="h-4 w-4 mr-2" />
                       <span className="hidden lg:inline">{t.admin}</span>
                     </Button>
                   )}
@@ -167,16 +167,16 @@ export default function Header() {
                     <DropdownMenuTrigger asChild>
                       <Button 
                         variant="outline" 
-                        className="h-9 sm:h-10 px-3 sm:px-4 rounded-full border-purple-500/50 hover:bg-purple-500/20"
+                        className="h-10 px-4 rounded-xl border-violet-500/30 hover:bg-violet-500/10 hover:border-violet-500/50 transition-all"
                       >
                         <span className="truncate max-w-[100px]">{profile?.first_name || user.email?.split('@')[0]}</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuContent align="end" className="w-48 rounded-xl">
                       <DropdownMenuItem 
                         onClick={handleSignOut}
                         disabled={signingOut}
-                        className="cursor-pointer text-red-400 focus:text-red-400"
+                        className="cursor-pointer text-red-500 focus:text-red-500 rounded-lg"
                       >
                         {signingOut ? (
                           <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Выход...</>
@@ -188,16 +188,16 @@ export default function Header() {
                   </DropdownMenu>
                 </>
               ) : (
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <Link
                     href="/sign-in"
-                    className="h-9 sm:h-10 px-3 sm:px-4 rounded-full hover:bg-purple-500/20 inline-flex items-center justify-center text-sm font-medium transition-colors"
+                    className="h-10 px-5 rounded-xl hover:bg-violet-500/10 inline-flex items-center justify-center text-sm font-medium transition-all"
                   >
                     {t.signIn}
                   </Link>
                   <Link
                     href="/sign-up"
-                    className="h-9 sm:h-10 px-4 sm:px-6 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-medium shadow-lg inline-flex items-center justify-center text-sm transition-colors"
+                    className="btn-premium h-10 px-6 inline-flex items-center justify-center text-sm font-medium text-white"
                   >
                     {t.signUp}
                   </Link>
