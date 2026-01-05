@@ -5,9 +5,10 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { ArrowLeft, Clock, Tag, ChevronRight, Plus, Minus, X } from 'lucide-react'
+import { ArrowLeft, Clock, Tag, ChevronRight, Plus, Minus, X, Loader2 } from 'lucide-react'
 import { translations } from '@/lib/i18n'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { useAuth } from '@/contexts/AuthContext'
 
 // Компонент модального окна для увеличения изображений
 function ImageModal({ src, onClose }) {
