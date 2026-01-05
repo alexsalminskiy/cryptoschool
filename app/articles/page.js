@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Input } from '@/components/ui/input'
 import {
@@ -10,10 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Search, ArrowRight, Clock } from 'lucide-react'
+import { Search, ArrowRight, Clock, Loader2 } from 'lucide-react'
 import { translations, categories } from '@/lib/i18n'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function ArticlesPage() {
+  const router = useRouter()
+  const { user, profile, loading: authLoading } = useAuth()
   const [articles, setArticles] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -21,16 +25,33 @@ export default function ArticlesPage() {
   const [language] = useState('ru')
   const t = translations[language]
 
+  // Проверка авторизации
   useEffect(() => {
-    fetchArticles()
-  }, [selectedCategory])
+    if (!authLoading) {
+      if (!user) {
+        // Не авторизован - редирект на вход
+        router.push('/sign-in')
+      } else if (profile && !profile.approved) {
+        // Авторизован, но не одобрен - редирект на страницу ожидания
+        router.push('/pending-approval')
+      }
+    }
+  }, [user, profile, authLoading, router])
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    if (user && profile?.approved) {
       fetchArticles()
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [searchTerm])
+    }
+  }, [selectedCategory, user, profile])
+
+  useEffect(() => {
+    if (user && profile?.approved) {
+      const timer = setTimeout(() => {
+        fetchArticles()
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+  }, [searchTerm, user, profile])
 
   const fetchArticles = async () => {
     try {
@@ -62,6 +83,15 @@ export default function ArticlesPage() {
 
   const handleCategoryChange = (value) => {
     setSelectedCategory(value)
+  }
+
+  // Показываем загрузку пока проверяем авторизацию
+  if (authLoading || !user || !profile?.approved) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+      </div>
+    )
   }
 
   return (
