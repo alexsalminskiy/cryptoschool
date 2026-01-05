@@ -3,12 +3,17 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, BookOpen, Shield, TrendingUp, Sparkles, Zap, Globe } from 'lucide-react'
+import { ArrowRight, BookOpen, Shield, TrendingUp, Sparkles, Zap } from 'lucide-react'
 import { translations } from '@/lib/i18n'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function HomePage() {
+  const { user, profile } = useAuth()
   const [language, setLanguage] = useState('ru')
   const [mounted, setMounted] = useState(false)
+  
+  // Проверяем, авторизован ли пользователь и одобрен
+  const isApproved = user && profile?.approved
   
   useEffect(() => {
     setMounted(true)
