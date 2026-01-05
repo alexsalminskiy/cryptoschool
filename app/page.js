@@ -3,19 +3,18 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowRight, BookOpen, Shield, TrendingUp } from 'lucide-react'
+import { ArrowRight, BookOpen, Shield, TrendingUp, Sparkles, Zap, Globe } from 'lucide-react'
 import { translations } from '@/lib/i18n'
 
 export default function HomePage() {
   const [language, setLanguage] = useState('ru')
+  const [mounted, setMounted] = useState(false)
   
-  // Получаем язык из localStorage
   useEffect(() => {
+    setMounted(true)
     const savedLang = localStorage.getItem('language') || 'ru'
     setLanguage(savedLang)
     
-    // Слушаем изменения
     const interval = setInterval(() => {
       const newLang = localStorage.getItem('language') || 'ru'
       if (newLang !== language) {
@@ -28,168 +27,241 @@ export default function HomePage() {
   
   const t = translations[language] || translations['ru']
   
-  // Тексты для секций на разных языках
   const texts = {
     ru: {
-      feature1Title: 'Bitcoin & Ethereum',
-      feature1Desc: 'Изучайте основы криптовалют и блокчейн технологий',
-      feature2Title: 'DeFi & Trading',
-      feature2Desc: 'Освойте децентрализованные финансы и торговые стратегии',
-      feature3Title: 'Security & Wallets',
-      feature3Desc: 'Защитите свои активы и научитесь безопасности',
-      ctaTitle: 'Получите доступ к эксклюзивным материалам',
-      ctaDesc: 'Зарегистрируйтесь, чтобы получить доступ к образовательным статьям, руководствам и аналитике по криптовалютам.',
-      register: 'Зарегистрироваться',
-      hasAccount: 'Уже есть аккаунт',
-      approvalNote: 'ℹ️ После регистрации администратор одобрит ваш аккаунт в течение 24 часов'
+      badge: 'Образовательная платформа',
+      feature1Title: 'Основы криптовалют',
+      feature1Desc: 'Глубокое понимание Bitcoin, Ethereum и технологии блокчейн',
+      feature2Title: 'Торговые стратегии',
+      feature2Desc: 'DeFi протоколы, спотовая торговля и управление рисками',
+      feature3Title: 'Безопасность активов',
+      feature3Desc: 'Защита кошельков, приватные ключи и лучшие практики',
+      ctaTitle: 'Начните обучение сегодня',
+      ctaDesc: 'Присоединяйтесь к тысячам пользователей, которые уже изучают криптовалюты с нами.',
+      register: 'Создать аккаунт',
+      hasAccount: 'Войти',
+      stats1: 'Статей',
+      stats2: 'Языков',
+      stats3: 'Тем',
+      trusted: 'Проверенные материалы'
     },
     en: {
-      feature1Title: 'Bitcoin & Ethereum',
-      feature1Desc: 'Learn the basics of cryptocurrencies and blockchain technology',
-      feature2Title: 'DeFi & Trading',
-      feature2Desc: 'Master decentralized finance and trading strategies',
-      feature3Title: 'Security & Wallets',
-      feature3Desc: 'Protect your assets and learn security best practices',
-      ctaTitle: 'Get access to exclusive content',
-      ctaDesc: 'Register to get access to educational articles, guides and cryptocurrency analytics.',
-      register: 'Register',
-      hasAccount: 'Already have an account',
-      approvalNote: 'ℹ️ After registration, an administrator will approve your account within 24 hours'
+      badge: 'Educational Platform',
+      feature1Title: 'Crypto Fundamentals',
+      feature1Desc: 'Deep understanding of Bitcoin, Ethereum and blockchain technology',
+      feature2Title: 'Trading Strategies',
+      feature2Desc: 'DeFi protocols, spot trading and risk management',
+      feature3Title: 'Asset Security',
+      feature3Desc: 'Wallet protection, private keys and best practices',
+      ctaTitle: 'Start learning today',
+      ctaDesc: 'Join thousands of users who are already learning crypto with us.',
+      register: 'Create account',
+      hasAccount: 'Sign in',
+      stats1: 'Articles',
+      stats2: 'Languages',
+      stats3: 'Topics',
+      trusted: 'Verified content'
     },
     kk: {
-      feature1Title: 'Bitcoin & Ethereum',
-      feature1Desc: 'Криптовалюталар мен блокчейн технологияларының негіздерін үйреніңіз',
-      feature2Title: 'DeFi & Trading',
-      feature2Desc: 'Орталықсыздандырылған қаржы және сауда стратегияларын меңгеріңіз',
-      feature3Title: 'Security & Wallets',
-      feature3Desc: 'Активтеріңізді қорғаңыз және қауіпсіздікті үйреніңіз',
-      ctaTitle: 'Эксклюзивті материалдарға қол жеткізіңіз',
-      ctaDesc: 'Білім беру мақалаларына, нұсқаулықтарға және криптовалюта талдауларына қол жеткізу үшін тіркеліңіз.',
-      register: 'Тіркелу',
-      hasAccount: 'Аккаунт бар',
-      approvalNote: 'ℹ️ Тіркелгеннен кейін әкімші сіздің аккаунтыңызды 24 сағат ішінде мақұлдайды'
+      badge: 'Білім беру платформасы',
+      feature1Title: 'Криптовалюта негіздері',
+      feature1Desc: 'Bitcoin, Ethereum және блокчейн технологиясын терең түсіну',
+      feature2Title: 'Сауда стратегиялары',
+      feature2Desc: 'DeFi хаттамалары, спот сауда және тәуекелдерді басқару',
+      feature3Title: 'Актив қауіпсіздігі',
+      feature3Desc: 'Әмиян қорғау, жеке кілттер және үздік тәжірибелер',
+      ctaTitle: 'Бүгін оқуды бастаңыз',
+      ctaDesc: 'Бізбен бірге крипто үйреніп жатқан мыңдаған пайдаланушыларға қосылыңыз.',
+      register: 'Аккаунт жасау',
+      hasAccount: 'Кіру',
+      stats1: 'Мақалалар',
+      stats2: 'Тілдер',
+      stats3: 'Тақырыптар',
+      trusted: 'Тексерілген материалдар'
     }
   }
   
   const lt = texts[language] || texts['ru']
 
+  if (!mounted) return null
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-hidden">
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-12 sm:py-20 md:py-32">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-pink-900/20 dark:from-purple-900/20 dark:to-pink-900/20" />
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
-        </div>
+      <section className="relative min-h-[90vh] flex items-center hero-bg">
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 grid-pattern" />
         
-        <div className="container relative z-10 mx-auto px-4">
+        {/* Floating Elements */}
+        <div className="absolute top-1/4 left-10 w-72 h-72 bg-violet-500/20 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-1/4 right-10 w-96 h-96 bg-fuchsia-500/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '-3s' }} />
+        
+        <div className="container relative z-10 mx-auto px-4 py-20">
           <div className="mx-auto max-w-4xl text-center">
-            <h1 className="mb-4 sm:mb-6 text-3xl sm:text-5xl md:text-7xl font-bold tracking-tight">
-              <span className="neon-text bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 bg-clip-text text-transparent">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/20 mb-8 animate-fade-in">
+              <Sparkles className="w-4 h-4 text-violet-500" />
+              <span className="text-sm font-medium text-violet-600 dark:text-violet-400">{lt.badge}</span>
+            </div>
+            
+            {/* Title */}
+            <h1 className="mb-6 text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+              <span className="gradient-text">
                 {t.heroTitle}
               </span>
             </h1>
-            <p className="mb-3 sm:mb-4 text-lg sm:text-xl md:text-2xl text-purple-700 dark:text-purple-200 font-medium">
+            
+            {/* Subtitle */}
+            <p className="mb-4 text-xl sm:text-2xl md:text-3xl font-medium text-foreground/80 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               {t.heroSubtitle}
             </p>
-            <p className="mb-6 sm:mb-8 text-base sm:text-lg text-muted-foreground px-4">
+            
+            {/* Description */}
+            <p className="mb-10 text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
               {t.heroDescription}
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0">
+            
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
               <Button
                 size="lg"
                 asChild
-                className="h-12 sm:h-14 px-6 sm:px-8 text-base sm:text-lg rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all"
+                className="btn-premium h-14 px-8 text-lg text-white"
               >
                 <Link href="/sign-up">
                   {t.getStarted}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                asChild
+                className="btn-outline-premium h-14 px-8 text-lg"
+              >
+                <Link href="/articles">
+                  {t.browseArticles}
+                </Link>
+              </Button>
+            </div>
+            
+            {/* Stats */}
+            <div className="mt-16 flex flex-wrap justify-center gap-8 md:gap-16 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-bold gradient-text">50+</div>
+                <div className="text-sm text-muted-foreground mt-1">{lt.stats1}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-bold gradient-text">3</div>
+                <div className="text-sm text-muted-foreground mt-1">{lt.stats2}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-bold gradient-text">10+</div>
+                <div className="text-sm text-muted-foreground mt-1">{lt.stats3}</div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-12 sm:py-20 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="grid gap-4 sm:gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-            <Card className="border-purple-500/20 dark:border-purple-900/50 bg-card/50 backdrop-blur hover:border-purple-500/40 transition-colors">
-              <CardHeader className="p-4 sm:p-6">
-                <BookOpen className="h-8 w-8 sm:h-10 sm:w-10 text-purple-500 dark:text-purple-400 mb-2" />
-                <CardTitle className="text-purple-700 dark:text-purple-300 text-lg sm:text-xl">{lt.feature1Title}</CardTitle>
-                <CardDescription className="text-muted-foreground text-sm sm:text-base">
-                  {lt.feature1Desc}
-                </CardDescription>
-              </CardHeader>
-            </Card>
+      <section className="py-24 md:py-32 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-muted/30 to-transparent" />
+        
+        <div className="container relative mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">{t.whyChooseUs || 'Почему выбирают нас'}</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              {lt.trusted}
+            </p>
+          </div>
+          
+          <div className="grid gap-6 md:gap-8 grid-cols-1 md:grid-cols-3 max-w-5xl mx-auto">
+            {/* Feature 1 */}
+            <div className="card-premium p-8">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center mb-6">
+                <BookOpen className="w-7 h-7 text-violet-500" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">{lt.feature1Title}</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                {lt.feature1Desc}
+              </p>
+            </div>
 
-            <Card className="border-purple-500/20 dark:border-purple-900/50 bg-card/50 backdrop-blur hover:border-purple-500/40 transition-colors">
-              <CardHeader className="p-4 sm:p-6">
-                <TrendingUp className="h-8 w-8 sm:h-10 sm:w-10 text-purple-500 dark:text-purple-400 mb-2" />
-                <CardTitle className="text-purple-700 dark:text-purple-300 text-lg sm:text-xl">{lt.feature2Title}</CardTitle>
-                <CardDescription className="text-muted-foreground text-sm sm:text-base">
-                  {lt.feature2Desc}
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            {/* Feature 2 */}
+            <div className="card-premium p-8">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center mb-6">
+                <TrendingUp className="w-7 h-7 text-violet-500" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">{lt.feature2Title}</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                {lt.feature2Desc}
+              </p>
+            </div>
 
-            <Card className="border-purple-500/20 dark:border-purple-900/50 bg-card/50 backdrop-blur hover:border-purple-500/40 transition-colors sm:col-span-2 md:col-span-1">
-              <CardHeader className="p-4 sm:p-6">
-                <Shield className="h-8 w-8 sm:h-10 sm:w-10 text-purple-500 dark:text-purple-400 mb-2" />
-                <CardTitle className="text-purple-700 dark:text-purple-300 text-lg sm:text-xl">{lt.feature3Title}</CardTitle>
-                <CardDescription className="text-muted-foreground text-sm sm:text-base">
-                  {lt.feature3Desc}
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            {/* Feature 3 */}
+            <div className="card-premium p-8">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center mb-6">
+                <Shield className="w-7 h-7 text-violet-500" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">{lt.feature3Title}</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                {lt.feature3Desc}
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-12 sm:py-20">
+      <section className="py-24 md:py-32 relative">
         <div className="container mx-auto px-4">
-          <Card className="border-purple-500/20 dark:border-purple-900/50 bg-card/50 backdrop-blur p-6 sm:p-8 md:p-12 text-center">
-            <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
-              <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-purple-500/20 dark:bg-purple-600/20 flex items-center justify-center">
-                <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500 dark:text-purple-400" />
+          <div className="relative max-w-4xl mx-auto">
+            {/* Background Glow */}
+            <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 via-fuchsia-500/20 to-violet-500/20 rounded-3xl blur-3xl" />
+            
+            <div className="relative glass-card p-10 md:p-16 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center mx-auto mb-8 animate-glow">
+                <Zap className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-purple-700 dark:text-purple-300">
+              
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
                 {lt.ctaTitle}
-              </h3>
-              <p className="text-muted-foreground text-sm sm:text-lg px-4">
+              </h2>
+              
+              <p className="text-muted-foreground text-lg mb-10 max-w-xl mx-auto">
                 {lt.ctaDesc}
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center pt-2 sm:pt-4 px-4 sm:px-0">
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
                   size="lg"
                   asChild
-                  className="h-11 sm:h-12 px-6 sm:px-8 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all"
+                  className="btn-premium h-14 px-10 text-lg text-white"
                 >
                   <Link href="/sign-up">
                     {lt.register}
+                    <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
                 <Button
                   size="lg"
                   variant="outline"
                   asChild
-                  className="h-11 sm:h-12 px-6 sm:px-8 rounded-full border-purple-500/50 text-purple-600 dark:text-purple-300 hover:bg-purple-500/10 hover:border-purple-500 transition-all"
+                  className="btn-outline-premium h-14 px-10 text-lg"
                 >
                   <Link href="/sign-in">
                     {lt.hasAccount}
                   </Link>
                 </Button>
               </div>
-              <p className="text-xs sm:text-sm text-muted-foreground px-4">
-                {lt.approvalNote}
-              </p>
             </div>
-          </Card>
+          </div>
         </div>
       </section>
+      
+      {/* Footer spacer */}
+      <div className="h-16" />
     </div>
   )
 }
