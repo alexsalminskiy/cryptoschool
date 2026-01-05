@@ -82,8 +82,8 @@ export default function Header() {
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex h-16 sm:h-18 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center">
-            <span className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+          <Link href="/" className="flex items-center group">
+            <span className="text-xl sm:text-2xl font-bold gradient-text">
               Crypto Academy
             </span>
           </Link>
