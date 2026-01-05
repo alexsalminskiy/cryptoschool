@@ -44,14 +44,17 @@ export default function ArticlesPage() {
     }
   }, [selectedCategory, user, profile])
 
+  // Поиск с задержкой (debounce)
   useEffect(() => {
-    if (user && profile?.approved) {
-      const timer = setTimeout(() => {
-        fetchArticles()
-      }, 300)
-      return () => clearTimeout(timer)
-    }
-  }, [searchTerm, user, profile])
+    // Не запускаем поиск если пользователь не авторизован или не одобрен
+    if (!user || !profile?.approved) return
+    
+    const timer = setTimeout(() => {
+      fetchArticles()
+    }, 500) // Увеличил задержку до 500мс
+    
+    return () => clearTimeout(timer)
+  }, [searchTerm]) // Убрал user и profile из зависимостей
 
   const fetchArticles = async () => {
     try {
