@@ -113,21 +113,21 @@ export default function Header() {
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  className="h-9 w-9 sm:h-10 sm:w-10 rounded-full hover:bg-purple-500/20"
+                  className="h-10 w-10 rounded-xl hover:bg-violet-500/10 transition-colors"
                 >
                   {flags[language]}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuContent align="end" className="w-44 rounded-xl">
                 {languages.map((lang) => (
                   <DropdownMenuItem 
                     key={lang.code}
                     onClick={() => setLanguage(lang.code)}
-                    className={`cursor-pointer ${language === lang.code ? 'bg-purple-500/20' : ''}`}
+                    className={`cursor-pointer rounded-lg ${language === lang.code ? 'bg-violet-500/10' : ''}`}
                   >
                     <span className="mr-3">{flags[lang.code]}</span>
                     <span>{lang.name}</span>
-                    {language === lang.code && <span className="ml-auto">✓</span>}
+                    {language === lang.code && <span className="ml-auto text-violet-500">✓</span>}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -138,12 +138,12 @@ export default function Header() {
               variant="ghost"
               size="icon"
               onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-              className="h-9 w-9 sm:h-10 sm:w-10 rounded-full hover:bg-purple-500/20"
+              className="h-10 w-10 rounded-xl hover:bg-violet-500/10 transition-colors"
             >
               {mounted && (
                 resolvedTheme === 'dark' 
-                  ? <Sun className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400" /> 
-                  : <Moon className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500" />
+                  ? <Sun className="h-5 w-5 text-amber-400" /> 
+                  : <Moon className="h-5 w-5 text-violet-500" />
               )}
             </Button>
 
