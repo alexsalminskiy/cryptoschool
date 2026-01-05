@@ -121,6 +121,7 @@ function formatDate(dateStr) {
 export default function ArticlePage() {
   const params = useParams()
   const router = useRouter()
+  const { user, profile, loading: authLoading } = useAuth()
   const { language, mounted } = useLanguage()
   const currentLang = language || 'ru'
   const [article, setArticle] = useState(null)
@@ -129,6 +130,17 @@ export default function ArticlePage() {
   const [loading, setLoading] = useState(true)
   const [translating, setTranslating] = useState(false)
   const [zoomedImage, setZoomedImage] = useState(null)
+
+  // Проверка авторизации
+  useEffect(() => {
+    if (!authLoading) {
+      if (!user) {
+        router.push('/sign-in')
+      } else if (profile && !profile.approved) {
+        router.push('/pending-approval')
+      }
+    }
+  }, [user, profile, authLoading, router])
   
   // Обработчик клика по изображениям для увеличения
   useEffect(() => {
