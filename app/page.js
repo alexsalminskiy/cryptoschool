@@ -144,7 +144,7 @@ export default function HomePage() {
                 asChild
                 className="btn-outline-premium h-14 px-8 text-lg"
               >
-                <Link href="/articles">
+                <Link href={isApproved ? "/articles" : "/sign-up"}>
                   {t.browseArticles || 'Смотреть статьи'}
                 </Link>
               </Button>
