@@ -140,7 +140,7 @@ export default function HomePage() {
                 className="btn-outline-premium h-14 px-8 text-lg"
               >
                 <Link href="/articles">
-                  {t.browseArticles}
+                  {t.browseArticles || 'Смотреть статьи'}
                 </Link>
               </Button>
             </div>
