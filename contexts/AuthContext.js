@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
 
 const AuthContext = createContext({})
 
@@ -19,7 +18,6 @@ export const AuthProvider = ({ children }) => {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [signingOut, setSigningOut] = useState(false)
-  const router = useRouter()
 
   // Быстрая функция получения профиля
   const fetchProfile = async (userId) => {
