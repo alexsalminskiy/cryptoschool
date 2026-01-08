@@ -105,21 +105,14 @@ export const AuthProvider = ({ children }) => {
     console.log('Signing out...')
     
     try {
-      // Сначала очищаем локальное состояние
-      setUser(null)
-      setProfile(null)
-      
-      // Затем выходим из Supabase
+      // Выходим из Supabase
       const { error } = await supabase.auth.signOut()
       
       if (error) {
         console.error('Sign out error:', error)
-        throw error
       }
       
-      console.log('Sign out successful')
-      
-      // Очищаем localStorage на всякий случай
+      // Очищаем localStorage полностью
       if (typeof window !== 'undefined') {
         localStorage.removeItem('supabase.auth.token')
         // Удаляем все ключи Supabase
@@ -130,18 +123,24 @@ export const AuthProvider = ({ children }) => {
         })
       }
       
-      // Перенаправляем на главную
-      router.push('/')
-      router.refresh()
+      // Очищаем локальное состояние
+      setUser(null)
+      setProfile(null)
+      
+      console.log('Sign out successful')
+      
+      // Делаем полный редирект (window.location) вместо router.push
+      // Это гарантирует полное обновление страницы и состояния
+      window.location.href = '/'
       
     } catch (error) {
       console.error('Error signing out:', error)
-      // Всё равно перенаправляем
-      router.push('/')
+      // Всё равно редиректим
+      window.location.href = '/'
     } finally {
       setSigningOut(false)
     }
-  }, [signingOut, router])
+  }, [signingOut])
 
   const value = {
     user,
