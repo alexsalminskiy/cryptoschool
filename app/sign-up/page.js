@@ -1,7 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,9 +10,10 @@ import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { translations } from '@/lib/i18n'
 import { Loader2, Eye, EyeOff } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function SignUpPage() {
-  const router = useRouter()
+  const { user, profile, loading: authLoading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -23,8 +23,20 @@ export default function SignUpPage() {
   const [lastName, setLastName] = useState('')
   const [middleName, setMiddleName] = useState('')
   const [loading, setLoading] = useState(false)
-  const [language] = useState('ru')
-  const t = translations[language]
+  const t = translations.ru
+
+  // Если пользователь уже авторизован - редирект
+  useEffect(() => {
+    if (!authLoading && user) {
+      if (profile?.role === 'admin') {
+        window.location.href = '/admin'
+      } else if (profile?.approved) {
+        window.location.href = '/articles'
+      } else if (profile && !profile.approved) {
+        window.location.href = '/pending-approval'
+      }
+    }
+  }, [user, profile, authLoading])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
