@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,6 +17,29 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false)
   const t = translations.ru
 
+  // Проверяем сессию при загрузке - если авторизован, редиректим
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        // Уже авторизован - редиректим
+        supabase
+          .from('profiles')
+          .select('role, approved')
+          .eq('id', session.user.id)
+          .single()
+          .then(({ data: profile }) => {
+            if (profile?.role === 'admin') {
+              window.location.href = '/admin'
+            } else if (profile?.approved) {
+              window.location.href = '/articles'
+            } else {
+              window.location.href = '/pending-approval'
+            }
+          })
+      }
+    })
+  }, [])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     
@@ -29,6 +52,28 @@ export default function SignInPage() {
     setLoading(true)
 
     try {
+      // Сначала проверим, может уже авторизован
+      const { data: { session: existingSession } } = await supabase.auth.getSession()
+      
+      if (existingSession?.user) {
+        // Уже авторизован - просто редиректим
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, approved')
+          .eq('id', existingSession.user.id)
+          .single()
+        
+        if (profile?.role === 'admin') {
+          window.location.href = '/admin'
+        } else if (profile?.approved) {
+          window.location.href = '/articles'
+        } else {
+          window.location.href = '/pending-approval'
+        }
+        return
+      }
+
+      // Не авторизован - делаем вход
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password
@@ -60,15 +105,14 @@ export default function SignInPage() {
 
       toast.success('Вход выполнен!')
 
-      setTimeout(() => {
-        if (profile?.role === 'admin') {
-          window.location.href = '/admin'
-        } else if (profile?.approved) {
-          window.location.href = '/articles'
-        } else {
-          window.location.href = '/pending-approval'
-        }
-      }, 300)
+      // Редирект
+      if (profile?.role === 'admin') {
+        window.location.href = '/admin'
+      } else if (profile?.approved) {
+        window.location.href = '/articles'
+      } else {
+        window.location.href = '/pending-approval'
+      }
 
     } catch (err) {
       setLoading(false)
