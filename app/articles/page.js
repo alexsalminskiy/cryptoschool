@@ -31,7 +31,7 @@ export default function ArticlesPage() {
       if (!user) {
         // Не авторизован - редирект на вход
         router.push('/sign-in')
-      } else if (profile && !profile.approved) {
+      } else if (profile !== null && profile.approved === false) {
         // Авторизован, но не одобрен - редирект на страницу ожидания
         router.push('/pending-approval')
       }
