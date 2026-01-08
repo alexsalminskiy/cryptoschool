@@ -136,7 +136,7 @@ export default function ArticlePage() {
     if (!authLoading) {
       if (!user) {
         router.push('/sign-in')
-      } else if (profile && !profile.approved) {
+      } else if (profile !== null && profile.approved === false) {
         router.push('/pending-approval')
       }
     }
