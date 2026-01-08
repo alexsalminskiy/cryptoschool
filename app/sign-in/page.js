@@ -9,29 +9,50 @@ import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { translations } from '@/lib/i18n'
 import { Loader2, Eye, EyeOff, ArrowRight } from 'lucide-react'
-import { useAuth } from '@/contexts/AuthContext'
 
 export default function SignInPage() {
-  const { user, profile, loading: authLoading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [checkingAuth, setCheckingAuth] = useState(true)
   const t = translations.ru
 
-  // Если пользователь уже авторизован - редирект
+  // Проверяем авторизацию при загрузке
   useEffect(() => {
-    if (!authLoading && user) {
-      // Пользователь уже авторизован
-      if (profile?.role === 'admin') {
-        window.location.href = '/admin'
-      } else if (profile?.approved) {
-        window.location.href = '/articles'
-      } else if (profile && !profile.approved) {
-        window.location.href = '/pending-approval'
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (session?.user) {
+          // Пользователь уже авторизован - получаем профиль и редиректим
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role, approved')
+            .eq('id', session.user.id)
+            .single()
+          
+          if (profile?.role === 'admin') {
+            window.location.href = '/admin'
+            return
+          } else if (profile?.approved) {
+            window.location.href = '/articles'
+            return
+          } else {
+            window.location.href = '/pending-approval'
+            return
+          }
+        }
+      } catch (error) {
+        console.error('Auth check error:', error)
       }
+      
+      // Не авторизован - показываем форму
+      setCheckingAuth(false)
     }
-  }, [user, profile, authLoading])
+    
+    checkAuth()
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -70,14 +91,13 @@ export default function SignInPage() {
       }
       
       // Получаем профиль
-      const { data: userProfile, error: profileError } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role, approved')
         .eq('id', data.user.id)
         .single()
 
       if (profileError) {
-        console.error('Profile error:', profileError)
         setLoading(false)
         toast.error('Ошибка загрузки профиля')
         return
@@ -85,11 +105,11 @@ export default function SignInPage() {
 
       toast.success('Вход выполнен!')
 
-      // Редирект через window.location для полной перезагрузки
+      // Редирект
       setTimeout(() => {
-        if (userProfile?.role === 'admin') {
+        if (profile?.role === 'admin') {
           window.location.href = '/admin'
-        } else if (userProfile?.approved) {
+        } else if (profile?.approved) {
           window.location.href = '/articles'
         } else {
           window.location.href = '/pending-approval'
@@ -98,22 +118,12 @@ export default function SignInPage() {
 
     } catch (err) {
       setLoading(false)
-      console.error('Login error:', err)
-      toast.error('Ошибка сети. Попробуйте ещё раз.')
+      toast.error('Ошибка сети')
     }
   }
 
-  // Показываем загрузку пока проверяем авторизацию
-  if (authLoading) {
-    return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
-      </div>
-    )
-  }
-
-  // Если уже авторизован - показываем загрузку (редирект в useEffect)
-  if (user) {
+  // Показываем загрузку только первые 2 секунды при проверке авторизации
+  if (checkingAuth) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
@@ -123,22 +133,16 @@ export default function SignInPage() {
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
-      {/* Background */}
       <div className="fixed inset-0 hero-bg -z-10" />
       <div className="fixed inset-0 grid-pattern -z-10" />
       
       <div className="w-full max-w-md animate-fade-in-up">
-        {/* Card */}
         <div className="glass-card p-8 md:p-10">
-          {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-2xl md:text-3xl font-bold mb-2">{t.signInTitle}</h1>
-            <p className="text-muted-foreground">
-              Войдите в свой аккаунт
-            </p>
+            <p className="text-muted-foreground">Войдите в свой аккаунт</p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium">{t.email}</Label>
@@ -194,7 +198,6 @@ export default function SignInPage() {
             </Button>
           </form>
 
-          {/* Footer */}
           <div className="mt-8 text-center">
             <p className="text-muted-foreground">
               {t.noAccount}{' '}
