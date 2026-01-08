@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,13 +9,29 @@ import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { translations } from '@/lib/i18n'
 import { Loader2, Eye, EyeOff, ArrowRight } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function SignInPage() {
+  const { user, profile, loading: authLoading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const t = translations.ru
+
+  // Если пользователь уже авторизован - редирект
+  useEffect(() => {
+    if (!authLoading && user) {
+      // Пользователь уже авторизован
+      if (profile?.role === 'admin') {
+        window.location.href = '/admin'
+      } else if (profile?.approved) {
+        window.location.href = '/articles'
+      } else if (profile && !profile.approved) {
+        window.location.href = '/pending-approval'
+      }
+    }
+  }, [user, profile, authLoading])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -53,7 +69,8 @@ export default function SignInPage() {
         return
       }
       
-      const { data: profile, error: profileError } = await supabase
+      // Получаем профиль
+      const { data: userProfile, error: profileError } = await supabase
         .from('profiles')
         .select('role, approved')
         .eq('id', data.user.id)
@@ -68,22 +85,40 @@ export default function SignInPage() {
 
       toast.success('Вход выполнен!')
 
-      // Используем setTimeout чтобы toast успел показаться
+      // Редирект через window.location для полной перезагрузки
       setTimeout(() => {
-        if (profile?.role === 'admin') {
+        if (userProfile?.role === 'admin') {
           window.location.href = '/admin'
-        } else if (profile?.approved) {
+        } else if (userProfile?.approved) {
           window.location.href = '/articles'
         } else {
           window.location.href = '/pending-approval'
         }
-      }, 500)
+      }, 300)
 
     } catch (err) {
       setLoading(false)
       console.error('Login error:', err)
       toast.error('Ошибка сети. Попробуйте ещё раз.')
     }
+  }
+
+  // Показываем загрузку пока проверяем авторизацию
+  if (authLoading) {
+    return (
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+      </div>
+    )
+  }
+
+  // Если уже авторизован - показываем загрузку (редирект в useEffect)
+  if (user) {
+    return (
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+      </div>
+    )
   }
 
   return (
