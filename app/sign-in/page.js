@@ -53,24 +53,35 @@ export default function SignInPage() {
         return
       }
       
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role, approved')
         .eq('id', data.user.id)
         .single()
 
+      if (profileError) {
+        console.error('Profile error:', profileError)
+        setLoading(false)
+        toast.error('Ошибка загрузки профиля')
+        return
+      }
+
       toast.success('Вход выполнен!')
 
-      if (profile?.role === 'admin') {
-        window.location.href = '/admin'
-      } else if (profile?.approved) {
-        window.location.href = '/articles'
-      } else {
-        window.location.href = '/pending-approval'
-      }
+      // Используем setTimeout чтобы toast успел показаться
+      setTimeout(() => {
+        if (profile?.role === 'admin') {
+          window.location.href = '/admin'
+        } else if (profile?.approved) {
+          window.location.href = '/articles'
+        } else {
+          window.location.href = '/pending-approval'
+        }
+      }, 500)
 
     } catch (err) {
       setLoading(false)
+      console.error('Login error:', err)
       toast.error('Ошибка сети. Попробуйте ещё раз.')
     }
   }
