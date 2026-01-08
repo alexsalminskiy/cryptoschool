@@ -10,10 +10,8 @@ import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { translations } from '@/lib/i18n'
 import { Loader2, Eye, EyeOff } from 'lucide-react'
-import { useAuth } from '@/contexts/AuthContext'
 
 export default function SignUpPage() {
-  const { user, profile, loading: authLoading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -23,20 +21,42 @@ export default function SignUpPage() {
   const [lastName, setLastName] = useState('')
   const [middleName, setMiddleName] = useState('')
   const [loading, setLoading] = useState(false)
+  const [checkingAuth, setCheckingAuth] = useState(true)
   const t = translations.ru
 
-  // Если пользователь уже авторизован - редирект
+  // Проверяем авторизацию при загрузке
   useEffect(() => {
-    if (!authLoading && user) {
-      if (profile?.role === 'admin') {
-        window.location.href = '/admin'
-      } else if (profile?.approved) {
-        window.location.href = '/articles'
-      } else if (profile && !profile.approved) {
-        window.location.href = '/pending-approval'
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (session?.user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role, approved')
+            .eq('id', session.user.id)
+            .single()
+          
+          if (profile?.role === 'admin') {
+            window.location.href = '/admin'
+            return
+          } else if (profile?.approved) {
+            window.location.href = '/articles'
+            return
+          } else {
+            window.location.href = '/pending-approval'
+            return
+          }
+        }
+      } catch (error) {
+        console.error('Auth check error:', error)
       }
+      
+      setCheckingAuth(false)
     }
-  }, [user, profile, authLoading])
+    
+    checkAuth()
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
