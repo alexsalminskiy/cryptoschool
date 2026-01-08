@@ -156,16 +156,7 @@ export default function SignUpPage() {
   }
 
   // Показываем загрузку пока проверяем авторизацию
-  if (authLoading) {
-    return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
-      </div>
-    )
-  }
-
-  // Если уже авторизован - показываем загрузку (редирект в useEffect)
-  if (user) {
+  if (checkingAuth) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
