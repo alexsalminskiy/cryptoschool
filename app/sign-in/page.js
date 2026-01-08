@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,44 +15,7 @@ export default function SignInPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [checkingAuth, setCheckingAuth] = useState(true)
   const t = translations.ru
-
-  // Проверяем авторизацию при загрузке
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        
-        if (session?.user) {
-          // Пользователь уже авторизован - получаем профиль и редиректим
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('role, approved')
-            .eq('id', session.user.id)
-            .single()
-          
-          if (profile?.role === 'admin') {
-            window.location.href = '/admin'
-            return
-          } else if (profile?.approved) {
-            window.location.href = '/articles'
-            return
-          } else {
-            window.location.href = '/pending-approval'
-            return
-          }
-        }
-      } catch (error) {
-        console.error('Auth check error:', error)
-      }
-      
-      // Не авторизован - показываем форму
-      setCheckingAuth(false)
-    }
-    
-    checkAuth()
-  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -63,7 +26,6 @@ export default function SignInPage() {
     }
     
     if (loading) return
-    
     setLoading(true)
 
     try {
@@ -90,22 +52,14 @@ export default function SignInPage() {
         return
       }
       
-      // Получаем профиль
-      const { data: profile, error: profileError } = await supabase
+      const { data: profile } = await supabase
         .from('profiles')
         .select('role, approved')
         .eq('id', data.user.id)
         .single()
 
-      if (profileError) {
-        setLoading(false)
-        toast.error('Ошибка загрузки профиля')
-        return
-      }
-
       toast.success('Вход выполнен!')
 
-      // Редирект
       setTimeout(() => {
         if (profile?.role === 'admin') {
           window.location.href = '/admin'
@@ -120,15 +74,6 @@ export default function SignInPage() {
       setLoading(false)
       toast.error('Ошибка сети')
     }
-  }
-
-  // Показываем загрузку только первые 2 секунды при проверке авторизации
-  if (checkingAuth) {
-    return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
-      </div>
-    )
   }
 
   return (
