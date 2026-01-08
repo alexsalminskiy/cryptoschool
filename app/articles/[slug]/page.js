@@ -270,7 +270,16 @@ export default function ArticlePage() {
   }
 
   // Показываем загрузку пока проверяем авторизацию
-  if (authLoading || !user || !profile?.approved) {
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+      </div>
+    )
+  }
+
+  // Если не авторизован или не одобрен - редирект уже происходит в useEffect
+  if (!user || (profile !== null && profile.approved === false)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
