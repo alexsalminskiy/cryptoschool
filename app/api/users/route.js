@@ -24,13 +24,15 @@ export async function GET() {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Supabase error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json(data || [])
+    return NextResponse.json(data || [], {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate'
+      }
+    })
   } catch (error) {
-    console.error('API error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
