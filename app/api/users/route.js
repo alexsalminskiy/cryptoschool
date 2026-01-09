@@ -1,13 +1,24 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
-import { supabaseAdmin } from '@/lib/supabase-admin'
+import { createClient } from '@supabase/supabase-js'
+
+// Создаём admin клиент который обходит RLS
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+)
 
 export const dynamic = 'force-dynamic'
 
 // GET /api/users - Get all users
 export async function GET() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('profiles')
       .select('*')
       .order('created_at', { ascending: false })
@@ -30,7 +41,7 @@ export async function PUT(request) {
     const body = await request.json()
     const { id, ...updates } = body
     
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('profiles')
       .update(updates)
       .eq('id', id)
@@ -59,7 +70,7 @@ export async function DELETE(request) {
     }
 
     // 1. Удаляем профиль из таблицы profiles
-    const { error: profileError } = await supabase
+    const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .delete()
       .eq('id', id)
