@@ -1,5 +1,17 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+
+// Создаём admin клиент который обходит RLS
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+)
 
 // Отключаем кэширование
 export const dynamic = 'force-dynamic'
@@ -8,7 +20,7 @@ export const revalidate = 0
 // GET /api/articles/all - Get all articles (for admin)
 export async function GET() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('articles')
       .select('*')
       .order('created_at', { ascending: false })
