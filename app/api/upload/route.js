@@ -27,7 +27,6 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024
 // POST /api/upload - Upload image to Supabase Storage
 export async function POST(request) {
   try {
-    console.log('[Upload] Starting upload...')
     const formData = await request.formData()
     const file = formData.get('file')
     
@@ -36,7 +35,6 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Файл не предоставлен' }, { status: 400 })
     }
 
-    console.log('[Upload] File info:', {
       name: file.name,
       type: file.type,
       size: file.size
@@ -63,13 +61,11 @@ export async function POST(request) {
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
     const filePath = fileName
 
-    console.log('[Upload] Generated filename:', fileName)
 
     // Convert file to buffer
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    console.log('[Upload] Uploading to Supabase Storage...')
 
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
@@ -87,7 +83,6 @@ export async function POST(request) {
       }, { status: 500 })
     }
 
-    console.log('[Upload] Upload successful:', data)
 
     // Get public URL
     const { data: urlData } = supabase.storage
@@ -96,7 +91,6 @@ export async function POST(request) {
 
     const publicUrl = urlData.publicUrl
 
-    console.log('[Upload] Public URL:', publicUrl)
 
     return NextResponse.json({ 
       url: publicUrl,

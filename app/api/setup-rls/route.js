@@ -14,7 +14,7 @@ export async function POST(request) {
     
     if (rlsProfilesError) {
       // Попробуем через прямой SQL
-      console.log('RPC not available, RLS may need manual setup')
+      // RPC not available
     }
 
     // Возвращаем инструкции для ручной настройки

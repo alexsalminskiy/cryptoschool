@@ -22,7 +22,6 @@ export async function GET(request, { params }) {
   try {
     const { id } = params
     
-    console.log('Fetching article by ID:', id)
     
     const { data, error } = await supabaseAdmin
       .from('articles')

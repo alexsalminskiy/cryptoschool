@@ -35,7 +35,6 @@ export default function PendingApprovalPage() {
       })
       
       const result = await response.json()
-      console.log('Check profile result:', result)
 
       if (!response.ok || result.error) {
         console.error('Error:', result.error)
