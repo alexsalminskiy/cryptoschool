@@ -19,23 +19,24 @@ export default function SignInPage() {
 
   // Проверяем сессию при загрузке - если авторизован, редиректим
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
-        // Уже авторизован - редиректим
-        supabase
-          .from('profiles')
-          .select('role, approved')
-          .eq('id', session.user.id)
-          .single()
-          .then(({ data: profile }) => {
-            if (profile?.role === 'admin') {
-              window.location.href = '/admin'
-            } else if (profile?.approved) {
-              window.location.href = '/articles'
-            } else {
-              window.location.href = '/pending-approval'
-            }
-          })
+        // Уже авторизован - используем API для проверки профиля
+        try {
+          const response = await fetch(`/api/check-profile?userId=${session.user.id}`)
+          const result = await response.json()
+          const profile = result.profile
+
+          if (profile?.role === 'admin') {
+            window.location.href = '/admin'
+          } else if (profile?.approved) {
+            window.location.href = '/articles'
+          } else {
+            window.location.href = '/pending-approval'
+          }
+        } catch (e) {
+          console.error('Error checking profile:', e)
+        }
       }
     })
   }, [])
