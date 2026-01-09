@@ -1,5 +1,17 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+
+// Создаём admin клиент
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+)
 
 // Отключаем кэширование
 export const dynamic = 'force-dynamic'
@@ -12,7 +24,7 @@ export async function GET(request, { params }) {
     
     console.log('Fetching article by ID:', id)
     
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('articles')
       .select('*')
       .eq('id', id)
