@@ -26,11 +26,11 @@ export default function RootLayout({ children }) {
           attribute="class"
           defaultTheme="dark"
           enableSystem={false}
-          disableTransitionOnChange={false}
+          disableTransitionOnChange={true}
         >
           <LanguageProvider>
             <AuthProvider>
-              <div className="min-h-screen bg-background transition-colors duration-300">
+              <div className="min-h-screen bg-background">
                 <HeaderWrapper />
                 <main>{children}</main>
                 <Toaster />
