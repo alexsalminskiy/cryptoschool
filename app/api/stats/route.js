@@ -1,5 +1,17 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+
+// Создаём admin клиент который обходит RLS
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+)
 
 // Отключаем кэширование
 export const dynamic = 'force-dynamic'
@@ -9,7 +21,7 @@ export const revalidate = 0
 export async function GET() {
   try {
     // Fetch articles stats
-    const { data: articles, error: articlesError } = await supabase
+    const { data: articles, error: articlesError } = await supabaseAdmin
       .from('articles')
       .select('status, views')
 
@@ -24,7 +36,7 @@ export async function GET() {
     const totalViews = articles?.reduce((sum, a) => sum + (a.views || 0), 0) || 0
 
     // Fetch users stats
-    const { data: users, error: usersError } = await supabase
+    const { data: users, error: usersError } = await supabaseAdmin
       .from('profiles')
       .select('approved, role')
 
