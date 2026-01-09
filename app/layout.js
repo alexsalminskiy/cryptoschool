@@ -1,4 +1,4 @@
-import { Inter, Open_Sans } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -6,11 +6,11 @@ import { LanguageProvider } from '@/contexts/LanguageContext'
 import { Toaster } from '@/components/ui/sonner'
 import HeaderWrapper from '@/components/HeaderWrapper'
 
-const inter = Inter({ subsets: ['latin', 'cyrillic'], variable: '--font-inter' })
-const openSans = Open_Sans({ 
-  weight: ['400', '500', '600', '700'],
-  subsets: ['latin', 'cyrillic'],
-  variable: '--font-opensans'
+const inter = Inter({ 
+  subsets: ['latin', 'cyrillic'], 
+  variable: '--font-inter',
+  display: 'swap', // Предотвращает мерцание шрифтов
+  preload: true
 })
 
 export const metadata = {
@@ -20,7 +20,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ru" suppressHydrationWarning>
+    <html lang="ru" className="dark" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -28,21 +28,22 @@ export default function RootLayout({ children }) {
               (function() {
                 try {
                   var theme = localStorage.getItem('theme') || 'dark';
-                  if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                    document.documentElement.classList.add('dark');
-                  }
-                } catch (e) {}
+                  document.documentElement.classList.toggle('dark', theme === 'dark');
+                } catch (e) {
+                  document.documentElement.classList.add('dark');
+                }
               })();
             `,
           }}
         />
       </head>
-      <body className={`${inter.variable} ${openSans.variable} font-sans`}>
+      <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
           enableSystem={false}
           disableTransitionOnChange={true}
+          storageKey="theme"
         >
           <LanguageProvider>
             <AuthProvider>
