@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState, useRef } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Clock, Mail, LogOut, CheckCircle, Loader2 } from 'lucide-react'
@@ -10,32 +9,36 @@ import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 
 export default function PendingApprovalPage() {
-  const router = useRouter()
   const { user, signOut } = useAuth()
   const [checkingStatus, setCheckingStatus] = useState(false)
   const [approved, setApproved] = useState(false)
+  const [redirecting, setRedirecting] = useState(false)
+  const hasRedirected = useRef(false) // Предотвращаем повторный редирект
 
   // Проверяем статус при загрузке страницы
   useEffect(() => {
-    if (user) {
+    if (user && !hasRedirected.current) {
       checkApprovalStatus(false)
     }
   }, [user])
 
-  // Автоматическая проверка каждые 10 секунд
+  // Автоматическая проверка каждые 10 секунд (только если ещё не одобрен)
   useEffect(() => {
-    if (!user) return
+    if (!user || approved || redirecting || hasRedirected.current) return
     
     const interval = setInterval(() => {
-      checkApprovalStatus(false)
+      if (!hasRedirected.current) {
+        checkApprovalStatus(false)
+      }
     }, 10000)
 
     return () => clearInterval(interval)
-  }, [user])
+  }, [user, approved, redirecting])
 
   const checkApprovalStatus = async (showToast = true) => {
-    if (!user) {
-      if (showToast) toast.error('Пользователь не авторизован')
+    // Предотвращаем проверку если уже редиректим
+    if (!user || hasRedirected.current || redirecting) {
+      if (showToast && !user) toast.error('Пользователь не авторизован')
       return
     }
 
@@ -57,14 +60,16 @@ export default function PendingApprovalPage() {
         return
       }
 
-      if (data?.approved === true || data?.role === 'admin') {
+      if ((data?.approved === true || data?.role === 'admin') && !hasRedirected.current) {
+        // Устанавливаем флаги до редиректа
+        hasRedirected.current = true
         setApproved(true)
+        setRedirecting(true)
         toast.success('Ваш аккаунт одобрен! Перенаправление...')
         
-        // Небольшая задержка перед редиректом
+        // Используем window.location.href для надёжного редиректа
         setTimeout(() => {
-          router.push('/articles')
-          router.refresh()
+          window.location.href = '/articles'
         }, 1500)
       } else {
         if (showToast) toast.info('Ваш аккаунт ещё не одобрен')
