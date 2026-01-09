@@ -7,237 +7,194 @@
 - **User Roles:**  (read-only) and  (full access).
 - **Public Site:** Landing page, articles list (), and article detail pages ().
 - **Admin Panel:** Dashboard, article management (CRUD), and user management (CRUD, approval, role changes).
-- **Article Editor:** Must support title, slug, category, cover image, and a Markdown editor with image/FAQ insertion.
-- **Technical:** Middleware for route protection, dark/light theme.
+- **Technical:** Middleware for route protection.
 
 **Subsequent user requests during this session:**
-- Change FAQ icons to plus/minus.
-- Add an FAQ button to the article editor.
-- Perform a full test of the application.
-- Fix a bug where only the first of multiple FAQ blocks was saved.
-- Fix a bug where articles wouldn't translate.
-- Hide publication date and view count from users.
-- Fix several markdown rendering issues (bold, italic, color).
-- Fix a critical bug where changing text color/size in the editor didn't save. This was a deep-seated caching issue.
-- Fix multiple regressions where the admin panel and login page would hang.
-- Fix incorrect stats on the admin dashboard (another caching issue).
-- Create a separate page for managing administrators.
-- Remove the ability to make a regular user an admin from the main user management page.
-- Add a user deletion function to the new admin management page.
-- Fix multiple critical post-deployment crashes related to context providers and browser compatibility (Safari).
+- Fix multiple, recurring login page bugs (hanging, timeouts, cache issues).
+- Implement translation for articles across multiple languages, handling long content.
+- Fix critical security vulnerabilities (admin middleware, incomplete user deletion).
+- Perform a full premium visual redesign of the entire application.
+- Implement content protection to ensure articles are only visible to approved, logged-in users.
+- Fix the search functionality.
+- Conduct a full pre-deployment health check.
+- Assist with deployment steps and environment variables for Vercel.
+- Fix post-deployment bugs related to login and user approval flows.
 
-**User's preferred language**: русский (Russian)
+**User's preferred language**: русский (Russian). The next agent MUST respond in Russian.
 
 **what currently exists?**
-The application is a Next.js 14 web app using Supabase as the backend. It features user authentication, user management, article CRUD, and an admin panel.
+The application is a full-stack Next.js 14 and Supabase web app for a Crypto Academy. The entire UI has been given a premium-style redesign. It includes user authentication (sign-up, login), role-based access, article viewing, and an admin panel. Key features like on-the-fly article translation and content protection for approved users have been implemented.
 
-This session was a turbulent cycle of bug fixing and feature implementation. The agent implemented several user requests: changing FAQ icons, adding an FAQ insertion tool to the article editor, creating a dedicated admin management panel, and refining user role permissions.
-
-However, the main focus was on stability. The agent debugged and fixed a series of critical, recurring, and post-deployment bugs:
-- **Regressions:** The login page and admin panel repeatedly started hanging, requiring fixes.
-- **Caching:** A major underlying issue was discovered and fixed: Next.js was caching API route responses, causing saved article edits and dashboard statistics to not appear. This was solved by adding  to the affected API routes.
-- **Critical Crashes:** After a simulated deployment, the agent fixed three distinct critical client-side crashes that were not caught by  tests: one due to an unhandled error in , another from a component trying to use the context before it was available, and a third caused by a JavaScript  feature incompatible with Safari.
-
-Despite these fixes, the login process is once again failing, and the original critical security vulnerabilities (disabled RLS and middleware) from the previous session remain unaddressed.
+This session was extremely volatile, focusing heavily on fixing a series of critical and recurring login bugs. The agent successfully implemented a major redesign, fixed the admin middleware, patched the user deletion logic, and implemented content chunking for the translation API. However, the login flow remains incredibly fragile, and a new critical bug has appeared in the user approval flow right at the end of the session.
 
 **Last working item**:
-    - Last item agent was working: Debugging a recurring issue where the user is unable to log in. The page hangs in a loading state and then shows a timeout error. The agent has verified that user accounts exist in the database and was in the process of adding more detailed logging to the  file to capture the specific error message returned by Supabase during the sign-in attempt.
+    - Last item agent was working: The user reported a critical bug after deployment: a newly approved user gets stuck on a page that says Account Approved! and the page enters an infinite refresh loop, never redirecting them to the main application. The agent has just acknowledged the problem and is about to start debugging.
     - Status: IN PROGRESS
     - Agent Testing Done: N
-    - Which testing method agent to use? Manual testing. The next agent should complete the addition of logging, then attempt to log in with valid and invalid credentials to observe the console output in the browser's developer tools.
-    - User Testing Done: N
+    - Which testing method agent to use? Frontend testing agent or manual testing.
+      - **To reproduce:**
+        1. Create a new user account via the  page.
+        2. Go to the Supabase dashboard ->  table and manually set  to  for the new user.
+        3. Try to log in as that new user.
+        4. Observe the infinite refresh loop on the page that should handle the post-approval redirect (likely  or logic within ).
+    - User Testing Done: Y (User discovered the bug on the deployed version)
 
 **All Pending/In progress Issue list**:
-  - Issue 1: Login is not working (P0 - CRITICAL)
-  - Issue 2: Major Security Vulnerabilities (P0 - CRITICAL)
-  - Issue 3: Incomplete User Deletion Logic (P1)
-  - Issue 4: Application Performance and Stability (P2)
+  - Issue 1: Infinite refresh loop for newly approved users (P0 - CRITICAL)
+  - Issue 2: Login page is extremely fragile and prone to regression (P0 - CRITICAL)
+  - Issue 3: Row Level Security (RLS) is disabled (P0 - CRITICAL SECURITY)
   
   Issues Detail:
   - Issue 1: 
-     - Description: Users cannot log in. The sign-in page hangs and eventually times out. This is a recurring regression. The previous fixes (increasing timeout, making the UI more robust) were insufficient as the root cause from Supabase was not identified.
-     - Attempted fixes: The agent rewrote  to be more robust with a  block and a longer timeout. The last action was to start adding more detailed logging to capture the actual error from the Supabase client.
+     - Description: After an admin approves a new user, the user logs in but gets stuck on a page that constantly refreshes instead of redirecting them to the main application. The user sees a Account Approved! message, indicating part of the logic works, but the final redirect fails, creating a loop.
+     - Attempted fixes: None. The issue was reported in the last user message.
      - Next debug checklist:
-        1.  Finalize adding  inside the  block of the  function in .
-        2.  Attempt to log in and check the browser's developer console for the detailed error object from Supabase.
-        3.  The error could be related to Email not confirmed, invalid credentials, or a Supabase-side configuration issue (e.g., rate-limiting).
-        4.  Fix the underlying cause based on the error message.
-     - Why fix this issue and what will be achieved with the fix? The app is unusable without a working login.
+        1. Examine the page responsible for showing the Account Approved message. This is likely  or a component rendered by the .
+        2. Analyze the  logic on that page. The problem is likely a faulty condition that triggers a redirect/refresh, which then brings the user back to the same page, causing a loop.
+        3. The logic should check the user's  status and, if , perform a *single* redirect to the homepage () or articles page (), then stop. The current implementation likely re-triggers the check after the refresh.
+     - Why fix this issue and what will be achieved with the fix? The user onboarding flow is completely broken. Fixing it will allow new users to access the application after approval.
      - Status:  IN PROGRESS
-     - Is recurring issue? Y
+     - Is recurring issue? N
      - Should Test frontend/backend/both after fix? Frontend
      - Blocked on other issue: None. This is the top priority.
 
   - Issue 2: 
-     - Description: Row Level Security (RLS) is disabled for the  and  tables. The server-side  for protecting  routes is also disabled/non-functional. This is a critical security flaw that has persisted across multiple sessions.
-     - Attempted fixes: None. This was intentionally done in a previous session for debugging and never reverted.
+     - Description: The login page () and authentication flow () have been the source of numerous bugs throughout the session (hanging forms, timeouts, cache-related failures, state management race conditions). The agent has rewritten it multiple times, indicating deep-seated instability. While it may appear to work on preview, it is highly likely to break again.
+     - Attempted fixes: The agent has tried: adding  blocks, adding and removing timeouts, using hard refreshes (), removing  context from the page, and simplifying loading states. The core issue seems to be a complex and fragile interaction between the page's local state and the 's state.
      - Next debug checklist:
-        1.  Re-enable RLS for the  and  tables in the Supabase dashboard.
-        2.  Test all CRUD operations to ensure they still work. This will likely require creating and using a  Supabase client in the API routes for operations that need to bypass RLS.
-        3.  Review and fix  to properly protect all  routes.
-     - Why fix this issue and what will be achieved with the fix? To secure the application's data and prevent unauthorized access. This is mandatory.
-     - Status:  NOT STARTED
-     - Is recurring issue? Y
-     - Should Test frontend/backend/both after fix? both
-     - Blocked on other issue: None. Should be addressed immediately after the login bug.
-
-  - Issue 3:
-     - Description: Deleting a user from the admin panel only removes their record from the  table, not from Supabase's  table. This is incomplete and prevents re-registration with the same email.
-     - Attempted fixes: None.
-     - Next debug checklist:
-        - Modify the  handler in the user management API (likely ).
-        - Create a privileged Supabase client on the server-side using the .
-        - Use this client to call the Supabase Admin API () in addition to deleting from the  table.
-     - Why fix this issue and what will be achieved with the fix? To provide a complete user management experience for the admin.
-     - Status: NOT STARTED
-     - Is recurring issue? N
-     - Should Test frontend/backend/both after fix? backend
-     - Blocked on other issue: None.
-  
-  - Issue 4:
-     - Description: The application has a history of performance issues and crashes, which led to the replacement of a feature-rich editor with a basic textarea. While many specific crashes were fixed in this session, the original root cause of high memory usage was never fully diagnosed.
-     - Attempted fixes: Symptoms were fixed (e.g., caching issues, infinite loops), but the core performance has not been profiled.
-     - Next debug checklist:
-        - After fixing security and login issues, monitor application performance.
-        - Consider re-evaluating lightweight WYSIWYG editor libraries if the application proves stable.
-     - Why fix this issue and what will be achieved with the fix? To ensure long-term stability and potentially restore richer editor functionality.
+        1. Conduct a full review of  and .
+        2. Standardize the authentication state management. The final approach was to remove  from the sign-in page; this should be confirmed as the best path forward and applied consistently.
+        3. Ensure all redirects are handled robustly (e.g., redirecting logged-in users away from ).
+     - Why fix this issue and what will be achieved with the fix? To ensure the application's most critical function is stable and reliable.
      - Status:  IN PROGRESS
      - Is recurring issue? Y
-     - Should Test frontend/backend/both after fix? both
-     - Blocked on other issue: None.
+     - Should Test frontend/backend/both after fix? Frontend
+     - Blocked on other issue: Issue 1 is more pressing, but this is a close second.
+
+  - Issue 3: 
+     - Description: The agent identified in a previous session that Row Level Security (RLS) was disabled for core tables like  and . A plan was made to fix all security issues, but only the admin middleware and user deletion were addressed. RLS remains disabled.
+     - Attempted fixes: None in this session. The task was forgotten after being planned.
+     - Next debug checklist:
+        1. Go to the Supabase dashboard and re-enable RLS for the  and  tables.
+        2. Define appropriate RLS policies (e.g., users can only update their own profile; only admins can read all profiles; only approved users can read articles).
+        3. Test ALL application functionality (reading articles, admin user management, etc.) as different user roles to ensure the RLS policies don't break legitimate actions. API routes may need to use the  client for admin-level actions.
+     - Why fix this issue and what will be achieved with the fix? To close a massive security vulnerability that currently allows any authenticated user to potentially access or modify all data in the database.
+     - Status:  NOT STARTED
+     - Is recurring issue? Y
+     - Should Test frontend/backend/both after fix? Both
+     - Blocked on other issue: None. Should be fixed immediately after the P0 functional bugs.
 
 **In progress Task List**:
-There are no active tasks; the current work is blocked by the Login is not working issue.
+- There are no other in-progress tasks. All work is focused on fixing the critical bugs listed above.
 
 **Upcoming and Future Tasks**
- Upcoming Tasks:
-- (P1) Implement 'Forgot Password' functionality. This was in the original requirements and is still missing.
-- (P3) After ensuring app stability, investigate and implement a lightweight but more feature-rich WYSIWYG editor to replace the current textarea.
-
- Future Tasks:
-- (P3) Implement article view analytics.
-- (P3) Implement search functionality for articles.
-- (P3) Add a comments section to articles.
+- (P1) **Forgot Password Page**: This was part of the original product requirements and has still not been implemented.
+- (P2) **Fix  dependency warnings**: The pre-deployment lint check found 8 warnings. The user initially skipped this, but it points to non-optimal code that could cause subtle bugs. This should be revisited once the app is stable.
 
 **Completed work in this session**
-- **Feature Implementation:**
-  - Added an FAQ insertion tool to both the new and existing article editors.
-  - Created a new, separate admin page at  for managing administrator accounts.
-  - Added functionality to delete or demote admins from the new admin page.
-  - Refined user management by removing the ability to promote regular users to admins from the  page.
-
-- **Critical Bug Fixes:**
-  - **API Caching:** Fixed a major bug where article edits and dashboard stats were not updating because of Next.js server-side caching. Resolved by adding  to  and .
-  - **Client-Side Crashes:**
-    - Fixed a fatal crash on the article page by making the  robust against being called before it's initialized.
-    - Fixed a Safari-specific crash by replacing an incompatible  (negative lookbehind) in the markdown parser.
-  - **Regressions:**
-    - Fixed recurring issues where the admin panel and login page would hang indefinitely.
-    - Fixed a bug where article translation stopped working.
-
-- **Bug Fixes & UI/UX:**
-  - Changed FAQ expand/collapse icons to plus/minus symbols.
-  - Fixed a bug where only the first of multiple FAQ blocks in an article would be rendered.
-  - Fixed the markdown parser to correctly handle complex nested formatting (e.g., bold text inside a colored span).
-  - Removed publication date and view counts from the public article list view per user request.
-  - Fixed various linting errors, primarily .
+- **Critical Bug Fixes & Security:**
+  - **Login Stability:** Addressed multiple login page hangs by improving loading state management, fixing race conditions, and handling browser caching issues.
+  - **Admin Middleware:** Implemented and fixed  to protect the  routes, redirecting unauthenticated users.
+  - **User Deletion:** Fixed the  endpoint to use the  to completely remove users from , not just the  table.
+- **Feature Implementation & Enhancement:**
+  - **Premium Redesign:** Executed a complete visual overhaul of the application, including the home page, article pages, and auth forms, to a modern, premium aesthetic with new CSS, animations, and component structures.
+  - **Article Translation:** Implemented a robust translation feature for articles that supports long content by chunking text before sending it to the Google Translate API.
+  - **Content Protection:** Added authentication and approval checks to the article list and detail pages, ensuring content is only accessible to approved users.
+- **Minor Fixes & Testing:**
+  - **Search:** Improved search UX by adding a debounce mechanism.
+  - **404 Error:** Fixed a console error by creating a missing  file.
+  - **Deployment Assistance:** Conducted a full pre-deployment health check and provided the user with detailed, step-by-step instructions for deploying to Vercel and setting environment variables.
 
 **Earlier issues found/mentioned but not fixed**
-- All known unfixed issues are captured in the All Pending/In progress Issue list.
+   - **Row Level Security (RLS)**: The agent planned to re-enable RLS but forgot to do so, leaving a critical security vulnerability open.
 
 **Known issue recurrence from previous fork**
-  - **Login/Admin Panel Hanging:** This issue has recurred multiple times. While specific causes (infinite loops, caching) were fixed, the login page is once again non-functional, indicating a deeper instability or multiple failure points in the authentication flow.
-  - **Performance/Crashes:** The app has a history of performance issues. Several specific client-side crashes were fixed in this session, but the underlying stability remains a concern.
+  - **Login Instability**: This is a severe recurring issue. It has failed due to (1) missing translations, (2) hanging on error, (3) browser caching, (4) context loading race conditions, and (5) post-deployment environment differences. The flow is fundamentally brittle.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
 - **Framework**: Next.js 14 (App Router)
-- **Backend/DB**: Supabase (PostgreSQL, Auth, Storage)
-- **Styling**: Tailwind CSS with shadcn/ui
-- **State Management**: React Context (, )
-- **Data Fetching & Caching**: The agent fixed major bugs caused by Next.js's default static caching of API routes. The solution was to use  to force dynamic rendering for specific API endpoints.
-- **Cross-Browser Compatibility**: Encountered and fixed a crash in Safari by replacing a modern  feature (negative lookbehind) with a more widely supported alternative.
+- **Backend/DB**: Supabase
+- **Styling**: Tailwind CSS, shadcn/ui. Heavily customized for a premium design with custom gradients, animations, and glassmorphism effects.
+- **Authentication Flow**: The session involved a deep and painful debugging of the React Context-based auth flow (). Key fixes involved using  for a hard refresh on logout and removing the  hook dependency from the sign-in page to prevent race conditions.
+- **API Development**: Created a  client using a service role key for privileged backend operations (user deletion). Modified the  route to handle large payloads by chunking text.
 
 **key DB schema**
-  - : {uid=0(root) gid=0(root) groups=0(root), , , , ...}
-  - : {uid=0(root) gid=0(root) groups=0(root), , , , ...}
+  - : {uid=0(root) gid=0(root) groups=0(root), , , }
+  - : {uid=0(root) gid=0(root) groups=0(root), , , }
 
 **changes in tech stack**
-- No changes to the core tech stack.
+  - No changes to the core stack.
 
 **All files of reference**
-- : The location of the current **P0 bug**. Needs immediate attention.
-- : Was the source of a critical crash. The fix here (returning a default value instead of throwing an error) is a key pattern to remember.
--  & : These files were fixed by adding . This is a critical concept for this application's architecture.
-- : This file's markdown parser was heavily refactored to fix rendering and cross-browser compatibility bugs.
-- : This file is a critical, unaddressed security vulnerability.
+- : **Current Bug Location.** The source of the infinite refresh loop for newly approved users.
+- : **Highly Unstable.** This file has been rewritten multiple times and is the primary source of recurring login issues. It was last modified to remove all loading states to ensure the form is always visible.
+- : The central hub for authentication state. Its complexity is a likely contributor to the various race conditions and state-related bugs seen during the session.
+- : Now correctly protects admin routes.
+- : Now correctly implements full user deletion from Supabase auth.
 
 **Areas that need refactoring**:
-- **Security Model**: The highest priority after fixing the login. RLS and the admin middleware must be re-enabled and properly configured.
-- **Authentication Flow**: The  page and  have been a recurring source of bugs. They need a thorough review and stabilization.
-- **User Deletion**: The backend logic for user deletion is incomplete.
+- **Authentication Flow**: The entire auth flow, particularly the interaction between  and the pages that consume it (, , ), is extremely fragile and needs a complete, systematic review to eliminate race conditions and create a single source of truth for auth state.
 
 **key api endpoints**
-- : Saves article updates.
-- : Retrieves a single article (caching was disabled here).
-- : Retrieves dashboard statistics (caching was disabled here).
-- : Creates a new user.
-- : Deletes a user (logic is incomplete).
-- : Translates text.
+- : Gets articles.
+- : Deletes a user from  and .
+- : Translates text, now with support for large content via chunking.
 
 **Critical Info for New Agent**
-- **TOP PRIORITY IS THE LOGIN BUG**: The application is currently unusable because login is broken. Your first task is to finish debugging  to identify and fix the root cause.
-- **SECURITY IS BROKEN**: Your second priority MUST be to fix the security vulnerabilities. **RLS is disabled** and the **admin middleware is non-functional**. Do not get sidetracked by other feature requests until this is addressed.
-- **BEWARE OF CACHING**: The agent spent significant time debugging issues that were ultimately caused by Next.js API route caching. If data seems stale after an update, immediately suspect caching and check if  is needed on the relevant  endpoint.
-- **TESTING MUST INCLUDE THE BROWSER**: Several critical crashes were client-side only and were missed by  tests. After making changes, do not assume a  from  means everything works. A more thorough testing approach is needed, even if it's just manual browser testing.
-- **REGRESSIONS ARE COMMON**: Be aware that login and admin panel stability issues have recurred. When fixing them, try to identify the absolute root cause rather than applying a surface-level fix.
+- **TOP PRIORITY:** You must fix the infinite refresh loop for newly approved users. This breaks the entire onboarding flow. Start by investigating .
+- **LOGIN IS A MINEFIELD:** Be extremely careful when touching the login code (, ). It has broken in at least five different ways this session. Any change must be tested thoroughly, including the already logged in and incorrect password cases.
+- **SECURITY HOLE:** You **MUST** re-enable and configure Row Level Security (RLS) in the Supabase dashboard. The previous agent planned to but forgot. The application is not secure without it.
+- **TESTING ON DEPLOYMENT IS KEY:** Many bugs (especially auth/caching related) only appeared after the user deployed to Vercel. Do not assume the preview environment is identical. Always advise the user to clear their browser cache or use incognito mode after a new deployment.
 
 **documents created in this job**
-- No new documents were created.
+- A pre-deployment health check report was generated but not saved to a file.
+-  was created to fix a 404 error.
 
 **Last 10 User Messages and any pending HUMAN messages** 
-1.  **не работает (doesn't work) (Pending - Login Bug)**: User reporting the login page is still broken after the agent's last fix.
-2.  **проблема не решена (problem not solved) (Pending - Login Bug)**: User reporting the login hangs and shows a timeout error.
-3.  **опять проблема со входом грузит (again a problem with login, it's loading) (In Progress - Login Bug)**: User reported the login hanging regression.
-4.  **и так еще опубликованную статью не переводит... (and also a published article doesn't translate...) (Completed)**: User reported the translation regression.
-5.  **ошибка не решена (problem not solved) (Completed - Safari Crash)**: User reported the Safari-specific regex crash.
-6.  **проблема не решена !!!!!!!!!!!!! (problem not solved !!!!!!!!!!!!!) (Completed - Context Crash)**: User emphatically reported the crash still happening after the first fix.
-7.  **...почему появилась ошибка после деплоя ? (why did an error appear after deploy?) (Completed - Context Crash)**: User asked why testing missed the critical crash.
-8.  **...ошибка у пользователа когда он открывает статью (error for user when they open an article) (Completed - Context Crash)**: User reported the first critical post-deployment crash.
-9.  **будем деплоить (let's deploy) (Completed)**: User gave the final go-ahead for deployment.
-10. **Ты уверен что можно деплоить ? (Are you sure it can be deployed?) (Completed)**: User asked for final confirmation before deploying.
+1.  **возникла проблема с одобрением аккаунта... (a problem with account approval appeared...) (Pending - Infinite Loop Bug)**: User reports the current critical bug where newly approved users are stuck in an infinite refresh loop.
+2.  **после ре деплоя уже не работает !!! (after re-deploy it doesn't work!!!) (In Progress - Login Bug)**: User reported the login page was still hanging on the deployed site.
+3.  **preview работает сейчас сделаем ре деплой и посмотрим (preview works, now we'll redeploy and see) (Completed)**: User confirmed the agent's fix worked on the preview URL.
+4.  **почему проблема не решена ???? (why is the problem not solved????)**: User expressed frustration that the login bug persisted after multiple fixes.
+5.  **ого убрал ошибки что вообще не заходит !! (wow you removed the errors so it doesn't log in at all!!) (Completed)**: User sarcastically noted a Vercel deployment error after a fix attempt.
+6.  **нажал вход и ничего не работает !!! (I clicked login and nothing works!!!) (In Progress - Login Bug)**: User reported the login form was completely broken (stuck on loading spinner).
+7.  **проблема не решена !!!! (problem not solved!!!!)**: User emphatically stated the login/logout/approval flow was still broken post-deployment.
+8.  **и так же была проблема при нажатии кнопки выход... (and also there was a problem with the logout button...) (Completed)**: User reported that logout was not working correctly.
+9.  **у меня как у админа возникли сложности со входом... (I, as an admin, had problems logging in...) (Completed)**: User reported the initial post-deployment login and user approval bugs.
+10. **проверьте переменные и скажите что там? (check the variables and tell me what's there?) (Completed)**: User shared a screenshot of their Vercel environment variables for confirmation.
 
 **Project Health Check:**
 - **Broken**:
-    - **Login**: The sign-in page is non-functional, preventing all user access. This is a P0 showstopper.
-    - **Security**: Row Level Security is disabled for core tables. This is a critical vulnerability.
-    - **Security**: The  route protection via  is non-functional.
-    - **User Deletion**: The user deletion feature is incomplete, leaving orphaned auth users.
+    - **User Onboarding Flow**: Newly approved users cannot access the app due to an infinite refresh loop.
+- **Fragile / At-Risk**:
+    - **Authentication System**: The entire login/logout/session management flow has proven to be extremely brittle and prone to regressions.
+- **Security Vulnerability**:
+    - **Database RLS**: Row Level Security is disabled on core tables, exposing all data to any authenticated user.
 
 **3rd Party Integrations**
-- **Supabase**: Authentication, PostgreSQL Database, Storage.
-- **Google Translate API** (via ): Used for real-time article translation.
+- **Supabase**: Used for Authentication, PostgreSQL Database, and Storage.
+- **Google Translate API**: Used via  in a custom API route () for article translation.
 
 **Testing status**
   - Testing agent used after significant changes: NO
   - Troubleshoot agent used after agent stuck in loop: NO
   - Test files created: None.
   - Known regressions:
-    - **Login Flow:** Has failed multiple times and is currently broken.
-    - **Admin Panel Performance:** This has been an issue in the past and required fixes.
+    - The **login flow** is a major source of recurring regressions.
 
 **Credentials to test flow:**
-- Login is currently broken.
-- To test admin functionality once login is fixed, a new agent must:
-    1. Register a new user via the  page.
-    2. Manually access the Supabase dashboard.
-    3. In the  table, find the new user and set their  to  and  to .
-    4. Log in with this new admin user.
+- To test the current bug, you must perform the new user registration and approval flow:
+    1. Register a new user on the  page.
+    2. Access the Supabase dashboard directly.
+    3. In the  table, find the new user and manually set their  column to .
+    4. Log in as this new user to observe the bug.
+- Admin access can be gained by setting a user's  to  in the Supabase  table.
 
 **What agent forgot to execute**
-- **Forgot Password Page**: Part of the original problem statement, but this feature has still not been implemented.
-- **Security Hardening**: The agent has consistently postponed re-enabling RLS and fixing  across multiple sessions, leaving the application in a vulnerable state. This is the most critical oversight.
+- **Re-enabling Row Level Security (RLS)**: This was identified as a critical security task, planned, but never executed. This is the most significant oversight.
+- **Implementing Forgot Password**: This feature from the original requirements remains un-built.
+- **Fixing  dependency warnings**: The agent and user agreed to skip this, but it remains a technical debt item.
 
 </analysis>
