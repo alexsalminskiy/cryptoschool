@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+// Отключаем кэширование
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 // Создаём клиент с service_role ключом - обходит RLS
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -38,6 +42,11 @@ export async function GET(request) {
     return NextResponse.json({
       success: true,
       profile: data
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Pragma': 'no-cache'
+      }
     })
 
   } catch (error) {
