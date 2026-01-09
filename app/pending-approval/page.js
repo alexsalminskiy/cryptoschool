@@ -1,79 +1,61 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Clock, Mail, LogOut, CheckCircle, Loader2 } from 'lucide-react'
+import { Clock, Mail, LogOut, CheckCircle, Loader2, RefreshCw } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 
 export default function PendingApprovalPage() {
   const { user, signOut } = useAuth()
   const [checkingStatus, setCheckingStatus] = useState(false)
-  const [approved, setApproved] = useState(false)
-  const [redirecting, setRedirecting] = useState(false)
-  const hasRedirected = useRef(false) // Предотвращаем повторный редирект
+  const [status, setStatus] = useState('pending') // 'pending', 'approved', 'redirecting'
+  const [userProfile, setUserProfile] = useState(null)
 
-  // Проверяем статус при загрузке страницы
-  useEffect(() => {
-    if (user && !hasRedirected.current) {
-      checkApprovalStatus(false)
-    }
-  }, [user])
-
-  // Автоматическая проверка каждые 10 секунд (только если ещё не одобрен)
-  useEffect(() => {
-    if (!user || approved || redirecting || hasRedirected.current) return
-    
-    const interval = setInterval(() => {
-      if (!hasRedirected.current) {
-        checkApprovalStatus(false)
-      }
-    }, 10000)
-
-    return () => clearInterval(interval)
-  }, [user, approved, redirecting])
-
+  // Функция проверки статуса
   const checkApprovalStatus = async (showToast = true) => {
-    // Предотвращаем проверку если уже редиректим
-    if (!user || hasRedirected.current || redirecting) {
-      if (showToast && !user) toast.error('Пользователь не авторизован')
+    if (!user) {
+      if (showToast) toast.error('Пользователь не авторизован')
       return
     }
 
+    if (status === 'redirecting') return
+
     setCheckingStatus(true)
     try {
-      console.log('Checking approval for user:', user.id)
+      // Добавляем timestamp чтобы избежать кэширования
+      const timestamp = Date.now()
+      const response = await fetch(`/api/check-profile?userId=${user.id}&_t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      })
       
-      // Используем API endpoint который обходит RLS
-      const response = await fetch(`/api/check-profile?userId=${user.id}`)
       const result = await response.json()
-
-      console.log('Approval check result:', result)
+      console.log('Check profile result:', result)
 
       if (!response.ok || result.error) {
-        console.error('Error checking approval:', result.error)
+        console.error('Error:', result.error)
         if (showToast) toast.error('Ошибка проверки статуса')
         return
       }
 
       const profile = result.profile
+      setUserProfile(profile)
 
-      if ((profile?.approved === true || profile?.role === 'admin') && !hasRedirected.current) {
-        // Устанавливаем флаги до редиректа
-        hasRedirected.current = true
-        setApproved(true)
-        setRedirecting(true)
+      // Проверяем одобрение
+      if (profile?.approved === true || profile?.role === 'admin') {
+        setStatus('approved')
         toast.success('Ваш аккаунт одобрен! Перенаправление...')
         
-        // Редирект в зависимости от роли
+        // Делаем редирект через 1.5 секунды
         setTimeout(() => {
-          if (profile?.role === 'admin') {
-            window.location.href = '/admin'
-          } else {
-            window.location.href = '/articles'
-          }
+          setStatus('redirecting')
+          const targetUrl = profile?.role === 'admin' ? '/admin' : '/articles'
+          window.location.replace(targetUrl)
         }, 1500)
       } else {
         if (showToast) toast.info('Ваш аккаунт ещё не одобрен')
@@ -86,13 +68,30 @@ export default function PendingApprovalPage() {
     }
   }
 
+  // Проверяем при загрузке
+  useEffect(() => {
+    if (user) {
+      checkApprovalStatus(false)
+    }
+  }, [user])
+
+  // Автоматическая проверка каждые 5 секунд
+  useEffect(() => {
+    if (!user || status !== 'pending') return
+
+    const interval = setInterval(() => {
+      checkApprovalStatus(false)
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [user, status])
+
   const handleSignOut = async () => {
     await signOut()
-    // signOut уже делает редирект через window.location.href
   }
 
-  // Если одобрен - показываем сообщение об успехе
-  if (approved) {
+  // Если одобрен или редирект - показываем успех
+  if (status === 'approved' || status === 'redirecting') {
     return (
       <div className="container mx-auto px-4 py-20">
         <div className="mx-auto max-w-2xl">
@@ -105,7 +104,7 @@ export default function PendingApprovalPage() {
                 Аккаунт одобрен!
               </CardTitle>
               <CardDescription className="text-lg">
-                Перенаправление на страницу статей...
+                Перенаправление...
               </CardDescription>
             </CardHeader>
             <CardContent className="flex justify-center">
@@ -143,9 +142,6 @@ export default function PendingApprovalPage() {
                   <p className="text-sm text-muted-foreground">
                     Ваша регистрация успешно завершена! Теперь администратор должен одобрить ваш аккаунт для доступа к образовательным материалам.
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                    Это обычно занимает от нескольких минут до 24 часов.
-                  </p>
                 </div>
               </div>
             </div>
@@ -159,6 +155,12 @@ export default function PendingApprovalPage() {
                 <div className="h-2 w-2 rounded-full bg-yellow-400 animate-pulse" />
                 <span>Статус: <strong className="text-yellow-400">Ожидание</strong></span>
               </div>
+              {checkingStatus && (
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <RefreshCw className="h-4 w-4 animate-spin text-purple-400" />
+                  <span className="text-purple-400">Проверка статуса...</span>
+                </div>
+              )}
             </div>
 
             <div className="pt-4 space-y-3">
@@ -173,7 +175,10 @@ export default function PendingApprovalPage() {
                     Проверка...
                   </>
                 ) : (
-                  'Проверить статус одобрения'
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Проверить статус
+                  </>
                 )}
               </Button>
               
@@ -189,7 +194,7 @@ export default function PendingApprovalPage() {
 
             <div className="rounded-lg border border-border bg-muted/50 p-4">
               <p className="text-xs text-muted-foreground text-center">
-                💡 <strong>Совет:</strong> Страница автоматически проверяет статус каждые 10 секунд. После одобрения вы будете перенаправлены автоматически.
+                💡 Страница автоматически проверяет статус каждые 5 секунд
               </p>
             </div>
           </CardContent>
