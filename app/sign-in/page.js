@@ -97,11 +97,10 @@ export default function SignInPage() {
         return
       }
       
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role, approved')
-        .eq('id', data.user.id)
-        .single()
+      // Используем API endpoint который обходит RLS
+      const profileResponse = await fetch(`/api/check-profile?userId=${data.user.id}`)
+      const profileResult = await profileResponse.json()
+      const profile = profileResult.profile
 
       toast.success('Вход выполнен!')
 
