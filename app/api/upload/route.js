@@ -31,28 +31,20 @@ export async function POST(request) {
     const file = formData.get('file')
     
     if (!file) {
-      console.error('[Upload] No file provided')
       return NextResponse.json({ error: 'Файл не предоставлен' }, { status: 400 })
     }
 
-      name: file.name,
-      type: file.type,
-      size: file.size
-    })
-
     // Проверка типа файла
     if (!SUPPORTED_IMAGE_TYPES.includes(file.type) && !file.type.startsWith('image/')) {
-      console.error('[Upload] Unsupported file type:', file.type)
       return NextResponse.json({ 
-        error: `Неподдерживаемый формат изображения. Поддерживаются: JPG, PNG, GIF, WEBP, SVG, BMP, TIFF, HEIC, AVIF` 
+        error: 'Неподдерживаемый формат изображения. Поддерживаются: JPG, PNG, GIF, WEBP, SVG, BMP, TIFF, HEIC, AVIF' 
       }, { status: 400 })
     }
 
     // Проверка размера файла
     if (file.size > MAX_FILE_SIZE) {
-      console.error('[Upload] File too large:', file.size)
       return NextResponse.json({ 
-        error: `Файл слишком большой. Максимальный размер: 10MB` 
+        error: 'Файл слишком большой. Максимальный размер: 10MB' 
       }, { status: 400 })
     }
 
@@ -61,11 +53,9 @@ export async function POST(request) {
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
     const filePath = fileName
 
-
     // Convert file to buffer
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
-
 
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
@@ -77,12 +67,10 @@ export async function POST(request) {
       })
 
     if (error) {
-      console.error('[Upload] Supabase error:', error)
       return NextResponse.json({ 
         error: `Ошибка загрузки: ${error.message}` 
       }, { status: 500 })
     }
-
 
     // Get public URL
     const { data: urlData } = supabase.storage
@@ -91,7 +79,6 @@ export async function POST(request) {
 
     const publicUrl = urlData.publicUrl
 
-
     return NextResponse.json({ 
       url: publicUrl,
       filename: fileName,
@@ -99,7 +86,6 @@ export async function POST(request) {
       type: file.type
     })
   } catch (error) {
-    console.error('[Upload] Unexpected error:', error)
     return NextResponse.json({ 
       error: `Внутренняя ошибка сервера: ${error.message}` 
     }, { status: 500 })
