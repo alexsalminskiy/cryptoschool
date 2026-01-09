@@ -77,7 +77,6 @@ export default function ArticlesPage() {
         setArticles([])
       }
     } catch (error) {
-      console.error('Error fetching articles:', error)
       setArticles([])
     } finally {
       setLoading(false)
