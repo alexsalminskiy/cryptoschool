@@ -1,5 +1,17 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+
+// Создаём admin клиент который обходит RLS
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+)
 
 // Отключаем кэширование
 export const dynamic = 'force-dynamic'
@@ -13,7 +25,7 @@ export async function GET(request) {
     const search = searchParams.get('search')
     const limit = parseInt(searchParams.get('limit') || '100')
     
-    let query = supabase
+    let query = supabaseAdmin
       .from('articles')
       .select('*')
       .eq('status', 'published')
@@ -45,7 +57,7 @@ export async function POST(request) {
   try {
     const body = await request.json()
     
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('articles')
       .insert([{
         title: body.title,
@@ -77,7 +89,7 @@ export async function PUT(request) {
     
     console.log('Updating article:', id, updates)
     
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('articles')
       .update(updates)
       .eq('id', id)
@@ -102,7 +114,7 @@ export async function DELETE(request) {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
     
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('articles')
       .delete()
       .eq('id', id)
