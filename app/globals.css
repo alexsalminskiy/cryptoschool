@@ -2,6 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Предотвращение мерцания при загрузке */
+html {
+  background-color: hsl(240 10% 4%);
+  color-scheme: dark;
+}
+
+html.dark {
+  background-color: hsl(240 10% 4%);
+}
+
+html:not(.dark) {
+  background-color: hsl(0 0% 99%);
+}
+
+/* Скрываем контент до загрузки стилей */
+body {
+  opacity: 1;
+}
+
 @layer base {
   :root {
     /* Premium Light Theme - Stripe/Linear inspired */
