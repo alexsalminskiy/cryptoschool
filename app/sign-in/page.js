@@ -57,12 +57,10 @@ export default function SignInPage() {
       const { data: { session: existingSession } } = await supabase.auth.getSession()
       
       if (existingSession?.user) {
-        // Уже авторизован - просто редиректим
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role, approved')
-          .eq('id', existingSession.user.id)
-          .single()
+        // Уже авторизован - используем API для проверки профиля
+        const profileResponse = await fetch(`/api/check-profile?userId=${existingSession.user.id}`)
+        const profileResult = await profileResponse.json()
+        const profile = profileResult.profile
         
         if (profile?.role === 'admin') {
           window.location.href = '/admin'
