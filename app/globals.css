@@ -393,11 +393,11 @@
   @apply my-12 border-border/50;
 }
 
-/* Smooth Transitions */
-* {
+/* Smooth Transitions - только для интерактивных элементов */
+a, button, input, select, textarea {
   transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 200ms;
+  transition-duration: 150ms;
 }
 
 /* Scrollbar */
