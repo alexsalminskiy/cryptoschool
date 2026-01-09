@@ -46,30 +46,34 @@ export default function PendingApprovalPage() {
     try {
       console.log('Checking approval for user:', user.id)
       
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('approved, role')
-        .eq('id', user.id)
-        .single()
+      // Используем API endpoint который обходит RLS
+      const response = await fetch(`/api/check-profile?userId=${user.id}`)
+      const result = await response.json()
 
-      console.log('Approval check result:', data, error)
+      console.log('Approval check result:', result)
 
-      if (error) {
-        console.error('Error checking approval:', error)
+      if (!response.ok || result.error) {
+        console.error('Error checking approval:', result.error)
         if (showToast) toast.error('Ошибка проверки статуса')
         return
       }
 
-      if ((data?.approved === true || data?.role === 'admin') && !hasRedirected.current) {
+      const profile = result.profile
+
+      if ((profile?.approved === true || profile?.role === 'admin') && !hasRedirected.current) {
         // Устанавливаем флаги до редиректа
         hasRedirected.current = true
         setApproved(true)
         setRedirecting(true)
         toast.success('Ваш аккаунт одобрен! Перенаправление...')
         
-        // Используем window.location.href для надёжного редиректа
+        // Редирект в зависимости от роли
         setTimeout(() => {
-          window.location.href = '/articles'
+          if (profile?.role === 'admin') {
+            window.location.href = '/admin'
+          } else {
+            window.location.href = '/articles'
+          }
         }, 1500)
       } else {
         if (showToast) toast.info('Ваш аккаунт ещё не одобрен')
