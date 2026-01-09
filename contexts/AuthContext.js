@@ -19,20 +19,17 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const [signingOut, setSigningOut] = useState(false)
 
-  // Быстрая функция получения профиля
+  // Функция получения профиля через API (обходит RLS)
   const fetchProfile = async (userId) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, email, role, approved, first_name, last_name, middle_name')
-        .eq('id', userId)
-        .single()
+      const response = await fetch(`/api/check-profile?userId=${userId}`)
+      const result = await response.json()
       
-      if (error) {
-        console.error('Profile fetch error:', error)
+      if (!response.ok || result.error) {
+        console.error('Profile fetch error:', result.error)
         return null
       }
-      return data
+      return result.profile
     } catch (e) {
       console.error('Profile fetch exception:', e)
       return null
