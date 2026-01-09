@@ -84,7 +84,7 @@ export default function PendingApprovalPage() {
 
   const handleSignOut = async () => {
     await signOut()
-    router.push('/')
+    // signOut уже делает редирект через window.location.href
   }
 
   // Если одобрен - показываем сообщение об успехе
