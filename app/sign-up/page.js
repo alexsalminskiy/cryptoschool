@@ -73,6 +73,18 @@ export default function SignUpPage() {
       return
     }
 
+    if (!phone.trim()) {
+      toast.error('Укажите номер телефона')
+      return
+    }
+
+    // Валидация формата телефона (простая проверка)
+    const phoneClean = phone.replace(/[\s\-\(\)]/g, '')
+    if (phoneClean.length < 10) {
+      toast.error('Введите корректный номер телефона')
+      return
+    }
+
     if (password.length < 6) {
       toast.error('Пароль должен быть минимум 6 символов')
       return
