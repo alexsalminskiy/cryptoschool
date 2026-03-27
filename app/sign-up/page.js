@@ -241,6 +241,18 @@ export default function SignUpPage() {
                 />
               </div>
               <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="phone" className="text-sm">Номер телефона *</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="+7 (999) 123-45-67"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  required
+                  className="bg-background border-border h-11"
+                />
+              </div>
+              <div className="space-y-1.5 sm:space-y-2">
                 <Label htmlFor="password" className="text-sm">{t.password} *</Label>
                 <div className="relative">
                   <Input
