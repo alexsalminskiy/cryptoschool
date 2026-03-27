@@ -320,6 +320,9 @@ export default function UsersManagement() {
                   {user.id === currentUser?.id && <Badge className="bg-purple-600">Вы</Badge>}
                 </div>
                 <p className="text-sm text-slate-400">{user.email}</p>
+                {user.phone && (
+                  <p className="text-sm text-slate-400">📱 {user.phone}</p>
+                )}
               </div>
               
               <div className="flex items-center gap-2">
