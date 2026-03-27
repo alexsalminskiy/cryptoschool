@@ -138,6 +138,7 @@ export default function SignUpPage() {
             first_name: firstName.trim(),
             last_name: lastName.trim(),
             middle_name: middleName.trim() || null,
+            phone: phone.trim() || null,
           })
           .eq('id', authData.user.id)
         
@@ -149,6 +150,7 @@ export default function SignUpPage() {
             first_name: firstName.trim(),
             last_name: lastName.trim(),
             middle_name: middleName.trim() || null,
+            phone: phone.trim() || null,
             role: 'user',
             approved: false,
             created_at: new Date().toISOString()
