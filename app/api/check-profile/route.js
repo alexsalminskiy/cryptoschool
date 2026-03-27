@@ -30,7 +30,7 @@ export async function GET(request) {
     // Используем admin клиент который обходит RLS
     const { data, error } = await supabaseAdmin
       .from('profiles')
-      .select('id, email, role, approved, first_name, last_name, middle_name')
+      .select('id, email, role, approved, first_name, last_name, middle_name, phone')
       .eq('id', userId)
       .single()
 
